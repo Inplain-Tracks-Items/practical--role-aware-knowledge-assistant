@@ -1,0 +1,74 @@
+{
+  "practical_case": {
+    "id": "Mtr8MwPnnB0vNP5X8OUp",
+    "slug": "role-aware-knowledge-assistant",
+    "name": "Role-Aware Knowledge Assistant"
+  },
+  "current": "inkp",
+  "stages": {
+    "intro": {
+      "status": "done",
+      "summary": "Brief approved: original Northwind Logistics scenario (tag-based audience + clearance access, shipment tools, self-written documents); case, profile, 7 profile skills and 7 intro sections created.",
+      "started_at": "2026-10-09T06:16:41.156Z",
+      "finished_at": "2026-10-09T06:16:44.838Z",
+      "updated_by": "api-key:for-chatgpt-test-2",
+      "outputs": {
+        "portal_url": "/practical-case/role-aware-knowledge-assistant",
+        "profile": "forward-deployed-engineering",
+        "skills": [
+          "implementing-rag",
+          "implementing-retrieval-vector-search",
+          "integrating-vector-databases",
+          "implementing-authentication-authorization",
+          "developing-apis-with-fastapi",
+          "managing-sequential-parallel-execution",
+          "implementing-tool-invocation"
+        ],
+        "intro_sections": 7
+      }
+    },
+    "repo": {
+      "status": "done",
+      "summary": "6 cumulative ICS step branches with STEP-N.crd + STEP-N.md; main = step 6 with FINAL.crd and final README. Ran pytest on every branch from a clean checkout (6/12/22/28/38/41 passed; OCR and live-LLM tests opt-in). Verified real EasyOCR on the scanned PDF, real bge retrieval per role, live Gemini answers and Gemini tool calling, and a uvicorn smoke test. OpenAI provider tested only with a stub client (the local OpenAI key is invalid). Code tested on Python 3.14; README states 3.12+. The .inkp file is left for stage 3.",
+      "started_at": "2026-10-09T06:18:58.781Z",
+      "finished_at": "2026-10-09T09:13:14.984Z",
+      "updated_by": "api-key:eeeeeeeeeeeeeeeeee",
+      "outputs": {
+        "repo_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
+        "steps": [
+          {
+            "no": 1,
+            "title": "Authenticated WebSocket",
+            "branch": "step-01-authenticated-websocket"
+          },
+          {
+            "no": 2,
+            "title": "Ingest tagged chunks",
+            "branch": "step-02-ingest-tagged-chunks"
+          },
+          {
+            "no": 3,
+            "title": "Access-aware retrieval",
+            "branch": "step-03-access-aware-retrieval"
+          },
+          {
+            "no": 4,
+            "title": "Stream answers",
+            "branch": "step-04-stream-answers"
+          },
+          {
+            "no": 5,
+            "title": "Parallel shipment tools",
+            "branch": "step-05-parallel-shipment-tools"
+          },
+          {
+            "no": 6,
+            "title": "Hardening",
+            "branch": "step-06-hardening"
+          }
+        ]
+      }
+    }
+  },
+  "updated_at": "2026-10-09T09:13:14.984Z"
+}
