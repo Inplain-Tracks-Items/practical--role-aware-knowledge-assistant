@@ -87,7 +87,14 @@
           "STEP-6"
         ]
       }
+    },
+    "content": {
+      "status": "in_progress",
+      "summary": "Gate 3 approved; creating CRD-driven portal categories and items.",
+      "started_at": "2026-10-09T12:31:03.341Z",
+      "finished_at": null,
+      "updated_by": "api-key:for-chatgpt-test-2"
     }
   },
-  "updated_at": "2026-10-09T09:17:39.393Z"
+  "updated_at": "2026-10-09T12:31:03.341Z"
 }
