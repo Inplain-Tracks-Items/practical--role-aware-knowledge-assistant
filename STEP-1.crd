@@ -2,7 +2,7 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T06:33:23Z",
+  "generated_at": "2026-10-09T09:56:14Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
     "revision": "step-01-authenticated-websocket",
@@ -306,6 +306,19 @@
       ],
       "validations": [],
       "operations": [
+        {
+          "id": "op-dep-llm",
+          "title": "get_llm_provider",
+          "origin": "imported",
+          "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:19",
+          "show": true,
+          "calls": {
+            "component": "be.get_llm_provider",
+            "type": "call",
+            "label": "injected via Depends",
+            "evidence": "app/features/feature_chat/router.py:19  async def chat_socket(websocket: WebSocket, settings=Depends(get_settings), llm=Depends(get_llm_provider)) -> None:"
+          }
+        },
         {
           "id": "op-delegate",
           "title": "handle_chat_socket",
