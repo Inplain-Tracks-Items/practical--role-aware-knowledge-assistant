@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+  Browser test client for /ws/chat: log in with a demo token, ask questions, watch sources and the streamed answer.
+  Open this file directly in a browser while `uvicorn app.main:app` runs.
+  ICS layer: ui (a single static page; handlers and services are plain functions below)
+  CRD components: fe.handleConnect, fe.handleServerEvent, fe.handleSend
+  Calls: WS /ws/chat (be.chat_socket)
+  Step: added in step 6 (Hardening)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northwind Assistant — Test Client</title>
+  <style>
+    /* Neutral layout; nothing here is needed to understand the protocol. */
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #f4f5f7; color: #1c1e21; }
+    main { max-width: 820px; margin: 0 auto; display: grid; gap: 12px; }
+    .panel { background: #fff; border: 1px solid #d8dbe0; border-radius: 8px; padding: 12px; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input { flex: 1; min-width: 0; padding: 8px; border: 1px solid #c9cdd3; border-radius: 6px; font: inherit; }
+    button { padding: 8px 14px; border: 0; border-radius: 6px; background: #1f6feb; color: #fff; font: inherit; cursor: pointer; }
+    button:disabled { background: #b8c0cc; cursor: default; }
+    #status { font-size: 13px; color: #57606a; }
+    #messages { min-height: 320px; max-height: 60vh; overflow-y: auto; display: grid; gap: 8px; align-content: start; }
+    .msg { padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; line-height: 1.45; }
+    .user { background: #1f6feb; color: #fff; justify-self: end; max-width: 85%; }
+    .bot { background: #eef0f3; justify-self: start; max-width: 85%; }
+    .sources { font-size: 12px; color: #57606a; }
+    .error { background: #ffebe9; color: #a40e26; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 style="font-size:20px;margin:0">Northwind Role-Aware Knowledge Assistant</h1>
+    <div class="panel">
+      <div class="row">
+        <input id="url" value="ws://localhost:8000/ws/chat" aria-label="WebSocket URL" />
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="token" placeholder="Paste a token from: python -m app.features.feature_auth.cli" aria-label="JWT" />
+        <button id="connect">Connect</button>
+      </div>
+      <div id="status" style="margin-top:8px">disconnected</div>
+    </div>
+    <div class="panel">
+      <div id="messages"></div>
+      <div class="row" style="margin-top:8px">
+        <input id="question" placeholder="Ask, e.g. What bonus can I earn?  or  Where is NW-1042?" disabled aria-label="Question" />
+        <button id="send" disabled>Send</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Elements used by the handlers below.
+    const el = (id) => document.getElementById(id);
+    let socket = null;   // the open WebSocket, or null
+    let answer = null;   // the bot bubble currently receiving stream events
+
+    // Appends one bubble to the conversation and keeps it scrolled to the bottom.
+    function addBubble(kind, text) {
+      const div = document.createElement("div");
+      div.className = "msg " + kind;
+      div.textContent = text;
+      el("messages").appendChild(div);
+      el("messages").scrollTop = el("messages").scrollHeight;
+      return div;
+    }
+
+    // Enables the question box only while authenticated.
+    function setReady(ready, label) {
+      el("question").disabled = !ready;
+      el("send").disabled = !ready;
+      el("connect").disabled = ready;
+      el("status").textContent = label;
+    }
+
+    // Connect button: opens the socket and sends the auth message first, as the protocol requires.
+    function handleConnect() {
+      const token = el("token").value.trim();
+      if (!token) { addBubble("error", "Paste a token first."); return; }
+      socket = new WebSocket(el("url").value.trim());
+      el("status").textContent = "connecting…";
+      socket.onopen = () => socket.send(JSON.stringify({ type: "auth", token }));
+      socket.onmessage = (event) => handleServerEvent(JSON.parse(event.data));
+      socket.onclose = () => { setReady(false, "disconnected"); socket = null; answer = null; };
+      socket.onerror = () => addBubble("error", "WebSocket error: is the server running?");
+    }
+
+    // Every server event, by type: auth result, sources, answer pieces, end of answer, errors.
+    function handleServerEvent(data) {
+      switch (data.type) {
+        case "auth_success":
+          setReady(true, `signed in as ${data.name} · role ${data.role} · clearance ${data.clearance}`);
+          break;
+        case "auth_failed":
+          addBubble("error", "Login refused: " + data.message);
+          break;
+        case "sources":
+          // Only pages this user may read can appear here.
+          answer = addBubble("bot", "");
+          const list = data.sources.map((s) => `${s.source_file} p.${s.page}`).join(", ");
+          answer.dataset.sources = list ? "Sources: " + list : "No allowed sources matched.";
+          break;
+        case "stream":
+          if (!answer) answer = addBubble("bot", "");
+          answer.textContent += data.text;
+          break;
+        case "done":
+          if (answer && answer.dataset.sources) addBubble("sources", answer.dataset.sources);
+          answer = null;
+          break;
+        case "error":
+          addBubble("error", data.message);
+          answer = null;
+          break;
+      }
+    }
+
+    // Send button / Enter: shows the question and sends it as a "message" event.
+    function handleSend() {
+      const text = el("question").value.trim();
+      if (!text || !socket) return;
+      addBubble("user", text);
+      socket.send(JSON.stringify({ type: "message", text }));
+      el("question").value = "";
+    }
+
+    el("connect").addEventListener("click", handleConnect);
+    el("send").addEventListener("click", handleSend);
+    el("question").addEventListener("keydown", (e) => { if (e.key === "Enter") handleSend(); });
+  </script>
+</body>
+</html>

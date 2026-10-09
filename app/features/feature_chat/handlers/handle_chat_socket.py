@@ -5,12 +5,16 @@
 # Calls: be.verify_jwt, be.tool_bind_shipment_overview, be.service_retrieve_chunks, be.service_build_prompt, be.service_stream_answer
 # Step: added in step 1 (Authenticated WebSocket); changed in step 3: retrieves allowed chunks and sends their sources;
 #       changed in step 4: builds the prompt from the allowed chunks for the LLM;
-#       changed in step 5: gives the LLM the shipment tool, bound to this connection's user
+#       changed in step 5: gives the LLM the shipment tool, bound to this connection's user;
+#       changed in step 6: failures become error events, message length limit, logging
+
+import logging  # server-side record of refused logins and failed answers
 
 from fastapi import WebSocket, WebSocketDisconnect  # the socket and the "client went away" signal
 
 from app.core.auth_error import AuthError  # raised by verify_jwt for any untrusted token
 from app.core.config import Settings  # carries the JWT secret for verification
+from app.core.token_claims import TokenClaims  # the verified user passed to _answer
 from app.core.verify_jwt import verify_jwt  # turns the token into trusted claims
 from app.features.feature_chat.schemas.chat_schemas import (  # every message shape of the protocol
     AuthFailedEvent,
@@ -29,6 +33,13 @@ from app.features.feature_shipment_tool.tool_bind_shipment_overview import tool_
 from app.providers.embeddings.base import EmbeddingProvider  # interfaces of the injected providers
 from app.providers.llm.base import LLMProvider
 from app.providers.vectorstore.base import VectorStore
+
+# One logger per module; core/configure_logging.py decides format and level.
+logger = logging.getLogger(__name__)
+
+# What the client sees when answering fails. Details (stack trace, provider message) go to
+# the server log only: they can contain internals the user should not see.
+ANSWER_FAILED = "the answer could not be generated; please try again"
 
 
 async def handle_chat_socket(
@@ -69,6 +80,8 @@ async def handle_chat_socket(
         # The claims returned here are this connection's identity from now on.
         user = verify_jwt(first.token, settings)
     except AuthError as exc:
+        # Refused logins are logged with the reason, never with the token itself.
+        logger.info("auth failed: %s", exc)
         await websocket.send_json(AuthFailedEvent(message=str(exc)).model_dump())
         await websocket.close()
         return
@@ -96,18 +109,45 @@ async def handle_chat_socket(
             # Only questions are answered; a second auth message or an empty text is ignored.
             if message.type != "message" or not message.text:
                 continue
-            # Step 4: retrieve the chunks this user may read that best match the question.
-            # The user's role and clearance come from the verified token (step 2), not from the message.
-            chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)
-            # Tell the client which pages were found (deduplicated, in relevance order).
-            pages = list(dict.fromkeys((c.source_file, c.page) for c in chunks))
-            await websocket.send_json(SourcesEvent(sources=[SourceRef(source_file=f, page=p) for f, p in pages]).model_dump())
-            # Step 5: build the prompt from those chunks only; the model never sees anything else.
-            system_prompt = service_build_prompt(chunks)
-            # Step 6: stream the answer piece by piece, then mark the end with "done".
-            async for piece in service_stream_answer(system_prompt, message.text, llm, tools):
-                await websocket.send_json(StreamEvent(text=piece).model_dump())
-            await websocket.send_json(DoneEvent().model_dump())
+            # Very long messages cost embedding and LLM time for nothing; refuse them politely.
+            if len(message.text) > settings.max_message_chars:
+                await websocket.send_json(ErrorEvent(message=f"message too long (max {settings.max_message_chars} characters)").model_dump())
+                continue
+            try:
+                await _answer(websocket, message.text, user, settings, llm, embedder, store, tools)
+            except WebSocketDisconnect:
+                raise
+            except Exception:
+                # Any failure while answering (vector store, LLM quota, network, a tool) is
+                # logged with its stack trace and reported as one error event. The loop goes on,
+                # so the next question on the same connection is answered normally.
+                logger.exception("answering failed for user %s", user.sub)
+                await websocket.send_json(ErrorEvent(message=ANSWER_FAILED).model_dump())
     except WebSocketDisconnect:
         # Normal end of a conversation: the client closed the socket.
         return
+
+
+async def _answer(
+    websocket: WebSocket,
+    text: str,
+    user: TokenClaims,
+    settings: Settings,
+    llm: LLMProvider,
+    embedder: EmbeddingProvider,
+    store: VectorStore,
+    tools: list,
+) -> None:
+    """Answer one question: sources event, streamed answer, done. Raises on any failure."""
+    # Step 4: retrieve the chunks this user may read that best match the question.
+    # The user's role and clearance come from the verified token (step 2), not from the message.
+    chunks = await service_retrieve_chunks(text, user, embedder, store, settings.retrieval_top_k)
+    # Tell the client which pages were found (deduplicated, in relevance order).
+    pages = list(dict.fromkeys((c.source_file, c.page) for c in chunks))
+    await websocket.send_json(SourcesEvent(sources=[SourceRef(source_file=f, page=p) for f, p in pages]).model_dump())
+    # Step 5: build the prompt from those chunks only; the model never sees anything else.
+    system_prompt = service_build_prompt(chunks)
+    # Step 6: stream the answer piece by piece, then mark the end with "done".
+    async for piece in service_stream_answer(system_prompt, text, llm, tools):
+        await websocket.send_json(StreamEvent(text=piece).model_dump())
+    await websocket.send_json(DoneEvent().model_dump())

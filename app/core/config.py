@@ -2,7 +2,8 @@
 # ICS layer: config
 # Called by: core/dependencies.py, feature_auth (JWT secret), feature_chat handler, feature_ingest and feature_sample_docs CLIs
 # Calls: pydantic-settings (reads the environment)
-# Step: added in step 1 (Authenticated WebSocket); changed in step 2: ingestion settings (docs, embeddings, Chroma, chunking, OCR); changed in step 3: retrieval_top_k; changed in step 4: OpenAI and Gemini settings
+# Step: added in step 1 (Authenticated WebSocket); changed in step 2: ingestion settings (docs, embeddings, Chroma, chunking, OCR); changed in step 3: retrieval_top_k; changed in step 4: OpenAI and Gemini settings;
+#       changed in step 6: max_message_chars, log_level
 
 from functools import lru_cache  # caches get_settings() so .env is parsed once per process
 
@@ -55,6 +56,12 @@ class Settings(BaseSettings):
     # How many allowed chunks are retrieved per question; 4 paragraphs is enough context
     # for these documents without drowning the model in loosely related text.
     retrieval_top_k: int = 4
+
+    # Step 6 — hardening.
+    # Longest question accepted; longer messages get an error event instead of an answer.
+    max_message_chars: int = 2000
+    # Python logging level for the server log: DEBUG, INFO, WARNING, ERROR.
+    log_level: str = "INFO"
 
 
 @lru_cache

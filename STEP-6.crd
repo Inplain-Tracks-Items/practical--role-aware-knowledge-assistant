@@ -2,23 +2,25 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T06:59:42Z",
+  "generated_at": "2026-10-09T09:07:23Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
-    "revision": "step-05-parallel-shipment-tools",
+    "revision": "step-06-hardening",
     "roots": {
-      "backend": "app"
+      "backend": "app",
+      "frontend": "test_client.html"
     },
     "stacks": [
-      "python-fastapi"
+      "python-fastapi",
+      "html-js"
     ]
   },
   "step": {
-    "no": 5,
+    "no": 6,
     "of": 6,
-    "title": "Parallel shipment tools",
-    "branch": "step-05-parallel-shipment-tools",
-    "previous": "STEP-4.crd",
+    "title": "Hardening",
+    "branch": "step-06-hardening",
+    "previous": "STEP-5.crd",
     "removed": []
   },
   "flows": [
@@ -369,7 +371,7 @@
       "kind": "function",
       "side": "backend",
       "layer": "handler",
-      "description": "Runs one chat connection: accept, auth handshake with a JWT, then a loop that streams an answer to every question.",
+      "description": "Runs one chat connection: accept, auth handshake, binds the user's tools, then a loop that validates each message and answers it through _answer, turning any failure into an error event.",
       "flows": [
         "chat-session"
       ],
@@ -377,8 +379,8 @@
         "file": "app/features/feature_chat/handlers/handle_chat_socket.py",
         "symbol": "app.features.feature_chat.handlers.handle_chat_socket.handle_chat_socket",
         "lines": [
-          34,
-          113
+          45,
+          128
         ]
       },
       "owner": "feature_chat",
@@ -427,14 +429,15 @@
           "rules": [
             "must parse as ClientMessage, else auth_failed + close",
             "type == \"auth\" and token present, else auth_failed + close",
-            "verify_jwt must succeed, else auth_failed with the AuthError message + close"
+            "verify_jwt must succeed, else auth_failed with the AuthError message + close (logged)"
           ]
         },
         {
           "input": "in-msg",
           "rules": [
-            "must parse as ClientMessage, else error event \"invalid message\" and the loop continues",
-            "type == \"message\" and text not empty, else ignored"
+            "must parse as ClientMessage, else error \"invalid message\" and the loop continues",
+            "type == \"message\" and text not empty, else ignored",
+            "len(text) <= settings.max_message_chars, else error \"message too long\" and no model call"
           ]
         }
       ],
@@ -443,7 +446,7 @@
           "id": "op-accept",
           "title": "websocket.accept",
           "origin": "external",
-          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:50",
+          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:61",
           "show": true,
           "calls": null
         },
@@ -451,7 +454,7 @@
           "id": "op-recv-auth",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:54",
+          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:65",
           "show": true,
           "calls": null
         },
@@ -459,20 +462,28 @@
           "id": "op-verify",
           "title": "verify_jwt",
           "origin": "imported",
-          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:70",
+          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:81",
           "show": true,
           "calls": {
             "component": "be.verify_jwt",
             "type": "call",
             "label": "verify token",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:70  user = verify_jwt(first.token, settings)"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:81  user = verify_jwt(first.token, settings)"
           }
+        },
+        {
+          "id": "op-log-auth",
+          "title": "logger.info",
+          "origin": "external",
+          "description": "Logs a refused login with its reason (never the token). app/features/feature_chat/handlers/handle_chat_socket.py:84",
+          "show": true,
+          "calls": null
         },
         {
           "id": "op-auth-ok",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:77",
+          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:90",
           "show": true,
           "calls": null
         },
@@ -480,83 +491,49 @@
           "id": "op-bind",
           "title": "tool_bind_shipment_overview",
           "origin": "imported",
-          "description": "Binds the shipment tool to this connection's user, once. app/features/feature_chat/handlers/handle_chat_socket.py:82",
+          "description": "Binds the shipment tool to this connection's user, once. app/features/feature_chat/handlers/handle_chat_socket.py:95",
           "show": true,
           "calls": {
             "component": "be.tool_bind_shipment_overview",
             "type": "call",
             "label": "bind tool to user",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:82  tools = [tool_bind_shipment_overview(user)]"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:95  tools = [tool_bind_shipment_overview(user)]"
           }
         },
         {
           "id": "op-recv",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:88",
+          "description": "Loop: reads the next message; malformed ones get \"invalid message\". app/features/feature_chat/handlers/handle_chat_socket.py:101",
           "show": true,
           "calls": null
         },
         {
-          "id": "op-retrieve",
-          "title": "service_retrieve_chunks",
-          "origin": "imported",
-          "description": "Retrieves up to retrieval_top_k chunks the user may read. app/features/feature_chat/handlers/handle_chat_socket.py:101",
-          "show": true,
-          "calls": {
-            "component": "be.service_retrieve_chunks",
-            "type": "await",
-            "label": "retrieve allowed chunks",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:101  chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)"
-          }
-        },
-        {
-          "id": "op-sources",
-          "title": "websocket.send_json",
-          "origin": "external",
-          "description": "Sends a sources event with the deduplicated (file, page) pairs. app/features/feature_chat/handlers/handle_chat_socket.py:104",
+          "id": "op-length",
+          "title": "inline: length check",
+          "origin": "inline",
+          "description": "Refuses text longer than max_message_chars with an error event. app/features/feature_chat/handlers/handle_chat_socket.py:113",
           "show": true,
           "calls": null
-        },
-        {
-          "id": "op-prompt",
-          "title": "service_build_prompt",
-          "origin": "imported",
-          "description": "Builds rules + labelled allowed passages. app/features/feature_chat/handlers/handle_chat_socket.py:106",
-          "show": true,
-          "calls": {
-            "component": "be.service_build_prompt",
-            "type": "call",
-            "label": "build prompt",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:106  system_prompt = service_build_prompt(chunks)"
-          }
         },
         {
           "id": "op-answer",
-          "title": "service_stream_answer",
-          "origin": "imported",
-          "description": "Streams the LLM answer for the prompt, the question and the bound tools. app/features/feature_chat/handlers/handle_chat_socket.py:108",
+          "title": "_answer",
+          "origin": "private",
+          "description": "Answers the question (sources, streamed answer, done). app/features/feature_chat/handlers/handle_chat_socket.py:117",
           "show": true,
           "calls": {
-            "component": "be.service_stream_answer",
+            "component": "be.handle_chat_socket._answer",
             "type": "await",
-            "label": "stream answer (with tools)",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:108  async for piece in service_stream_answer(system_prompt, message.text, llm, tools):"
+            "label": "answer one question",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:117  await _answer(websocket, message.text, user, settings, llm, embedder, store, tools)"
           }
         },
         {
-          "id": "op-stream",
-          "title": "websocket.send_json",
+          "id": "op-fail",
+          "title": "logger.exception + send_json",
           "origin": "external",
-          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:109",
-          "show": true,
-          "calls": null
-        },
-        {
-          "id": "op-done",
-          "title": "websocket.send_json",
-          "origin": "external",
-          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:110",
+          "description": "On any exception from _answer: logs the stack trace and sends error ANSWER_FAILED; the loop continues. app/features/feature_chat/handlers/handle_chat_socket.py:124",
           "show": true,
           "calls": null
         }
@@ -575,27 +552,27 @@
         {
           "id": "out-sources",
           "name": "event.sources",
-          "description": "{type, sources: [{source_file, page}]} before each answer; allowed pages only."
+          "description": "From _answer."
         },
         {
           "id": "out-stream",
           "name": "event.stream",
-          "description": "{type, text}, one per answer piece."
+          "description": "From _answer."
         },
         {
           "id": "out-done",
           "name": "event.done",
-          "description": "{type} after each answer."
+          "description": "From _answer."
         },
         {
           "id": "out-error",
           "name": "event.error",
-          "description": "{type, message} for a malformed message; the connection stays open."
+          "description": "\"invalid message\", \"message too long (max N characters)\" or ANSWER_FAILED; the connection stays open."
         }
       ],
       "attributes": {
         "is_async": true,
-        "step_note": "binds the shipment tool to the user and passes it to the LLM"
+        "step_note": "each question runs in _answer inside try/except: failures are logged and become one error event while the loop continues; messages over max_message_chars are refused; refused logins are logged"
       },
       "step_change": "changed"
     },
@@ -777,10 +754,9 @@
       "attributes": {
         "is_async": true,
         "evidence": "concrete provider chosen by get_llm_provider from LLM_PROVIDER",
-        "step_note": "passes the user-bound tools to the provider",
         "validations_note": "no input checks in code"
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "be.FakeProvider.stream_chat",
@@ -861,10 +837,9 @@
       ],
       "attributes": {
         "is_async": true,
-        "step_note": "calls the first tool when the question contains an id-like token (e.g. NW-1042)",
         "validations_note": "no input checks in code"
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "be.get_llm_provider",
@@ -3166,10 +3141,9 @@
         }
       ],
       "attributes": {
-        "is_async": false,
-        "step_note": "adds the rule to call get_shipment_overview for shipment ids and to cite it as (shipment tool)"
+        "is_async": false
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "be.OpenAIProvider.stream_chat",
@@ -3279,10 +3253,9 @@
       ],
       "attributes": {
         "is_async": true,
-        "step_note": "streams every round, collects tool-call fragments, runs the requested tools concurrently and streams the next round",
         "validations_note": "no input checks in code"
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "be.GeminiProvider.stream_chat",
@@ -3376,10 +3349,9 @@
       ],
       "attributes": {
         "is_async": true,
-        "step_note": "uses the chat API so the SDK's automatic function calling runs the tools while streaming",
         "validations_note": "no input checks in code"
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.openai_api",
@@ -3478,7 +3450,7 @@
         "is_async": false,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.get_shipment_overview",
@@ -3540,7 +3512,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.tool_get_shipment_overview",
@@ -3660,7 +3632,7 @@
       "attributes": {
         "is_async": true
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_find_visible_shipment",
@@ -3739,7 +3711,7 @@
       "attributes": {
         "is_async": true
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_get_shipment_status",
@@ -3796,7 +3768,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_get_route_eta",
@@ -3869,7 +3841,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_get_customer_sla",
@@ -3926,7 +3898,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.operations_apis",
@@ -3948,6 +3920,384 @@
       "outputs": [],
       "attributes": {
         "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.handle_chat_socket._answer",
+      "name": "_answer",
+      "kind": "function",
+      "side": "backend",
+      "layer": "handler",
+      "description": "Answers one question: allowed chunks, sources event, prompt, streamed answer with tools, done. Raises on any failure.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/handlers/handle_chat_socket.py",
+        "symbol": "app.features.feature_chat.handlers.handle_chat_socket._answer",
+        "lines": [
+          131,
+          153
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Per-question orchestration extracted from handle_chat_socket so a failure anywhere in it is caught as one unit.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-ws",
+          "name": "websocket",
+          "description": "WebSocket."
+        },
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str. The validated question."
+        },
+        {
+          "id": "in-user",
+          "name": "user",
+          "description": "TokenClaims."
+        },
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings. retrieval_top_k."
+        },
+        {
+          "id": "in-llm",
+          "name": "llm",
+          "description": "LLMProvider."
+        },
+        {
+          "id": "in-embedder",
+          "name": "embedder",
+          "description": "EmbeddingProvider."
+        },
+        {
+          "id": "in-store",
+          "name": "store",
+          "description": "VectorStore."
+        },
+        {
+          "id": "in-tools",
+          "name": "tools",
+          "description": "list. The user-bound tools."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-retrieve",
+          "title": "service_retrieve_chunks",
+          "origin": "imported",
+          "description": "Retrieves up to retrieval_top_k chunks the user may read. app/features/feature_chat/handlers/handle_chat_socket.py:144",
+          "show": true,
+          "calls": {
+            "component": "be.service_retrieve_chunks",
+            "type": "await",
+            "label": "retrieve allowed chunks",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:144  chunks = await service_retrieve_chunks(text, user, embedder, store, settings.retrieval_top_k)"
+          }
+        },
+        {
+          "id": "op-sources",
+          "title": "websocket.send_json",
+          "origin": "external",
+          "description": "Sends a sources event with the deduplicated (file, page) pairs. app/features/feature_chat/handlers/handle_chat_socket.py:147",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-prompt",
+          "title": "service_build_prompt",
+          "origin": "imported",
+          "description": "Builds rules + labelled allowed passages. app/features/feature_chat/handlers/handle_chat_socket.py:149",
+          "show": true,
+          "calls": {
+            "component": "be.service_build_prompt",
+            "type": "call",
+            "label": "build prompt",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:149  system_prompt = service_build_prompt(chunks)"
+          }
+        },
+        {
+          "id": "op-answer",
+          "title": "service_stream_answer",
+          "origin": "imported",
+          "description": "Streams the LLM answer with the bound tools. app/features/feature_chat/handlers/handle_chat_socket.py:151",
+          "show": true,
+          "calls": {
+            "component": "be.service_stream_answer",
+            "type": "await",
+            "label": "stream answer (with tools)",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:151  async for piece in service_stream_answer(system_prompt, text, llm, tools):"
+          }
+        },
+        {
+          "id": "op-stream",
+          "title": "websocket.send_json",
+          "origin": "external",
+          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:152",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-done",
+          "title": "websocket.send_json",
+          "origin": "external",
+          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:153",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-sources",
+          "name": "event.sources",
+          "description": "{type, sources}."
+        },
+        {
+          "id": "out-stream",
+          "name": "event.stream",
+          "description": "{type, text} per piece."
+        },
+        {
+          "id": "out-done",
+          "name": "event.done",
+          "description": "{type}."
+        },
+        {
+          "id": "out-raise",
+          "name": "exception",
+          "description": "Any failure propagates to handle_chat_socket."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "visibility": "private",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "fe.handleConnect",
+      "name": "handleConnect",
+      "kind": "function",
+      "side": "frontend",
+      "layer": "handler",
+      "description": "Connect button: opens the WebSocket and sends the auth message first.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "test_client.html",
+        "symbol": "handleConnect",
+        "lines": [
+          81,
+          90
+        ]
+      },
+      "owner": "test_client.html",
+      "component_reason": "Starts the chat flow from the browser.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-token",
+          "name": "token",
+          "description": "string, from the token input."
+        },
+        {
+          "id": "in-url",
+          "name": "url",
+          "description": "string, from the URL input, default ws://localhost:8000/ws/chat."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-token",
+          "rules": [
+            "not empty, else shows \"Paste a token first.\" and returns"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-open",
+          "title": "new WebSocket",
+          "origin": "external",
+          "description": "Opens the socket to the URL. test_client.html:84",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-auth",
+          "title": "socket.send",
+          "origin": "external",
+          "description": "On open: sends {type: \"auth\", token}. test_client.html:86",
+          "show": true,
+          "calls": {
+            "component": "be.chat_socket",
+            "type": "rpc",
+            "label": "WS /ws/chat auth",
+            "evidence": "test_client.html:86  socket.onopen = () => socket.send(JSON.stringify({ type: \"auth\", token }));"
+          }
+        },
+        {
+          "id": "op-events",
+          "title": "handleServerEvent",
+          "origin": "private",
+          "description": "Every incoming message is parsed and dispatched. test_client.html:87",
+          "show": true,
+          "calls": {
+            "component": "fe.handleServerEvent",
+            "type": "event",
+            "label": "message",
+            "evidence": "test_client.html:87  socket.onmessage = (event) => handleServerEvent(JSON.parse(event.data));"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-none",
+          "name": "none",
+          "description": "Side effects: open socket, status text."
+        }
+      ],
+      "attributes": {
+        "is_async": false
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "fe.handleServerEvent",
+      "name": "handleServerEvent",
+      "kind": "function",
+      "side": "frontend",
+      "layer": "handler",
+      "description": "Renders each server event: auth result, sources line, streamed answer text, done, errors.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "test_client.html",
+        "symbol": "handleServerEvent",
+        "lines": [
+          93,
+          120
+        ]
+      },
+      "owner": "test_client.html",
+      "component_reason": "The client side of the wire protocol.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-data",
+          "name": "data",
+          "description": "object, a parsed server event."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-switch",
+          "title": "inline: switch (data.type)",
+          "origin": "inline",
+          "description": "auth_success enables the question box; sources opens a bubble; stream appends; done shows the sources; error shows a red bubble. test_client.html:94",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-bubble",
+          "title": "addBubble",
+          "origin": "private",
+          "description": "Appends a bubble to the conversation. test_client.html:103",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-none",
+          "name": "none",
+          "description": "DOM updates."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "fe.handleSend",
+      "name": "handleSend",
+      "kind": "function",
+      "side": "frontend",
+      "layer": "handler",
+      "description": "Send button / Enter: shows the question and sends it as a message event.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "test_client.html",
+        "symbol": "handleSend",
+        "lines": [
+          123,
+          129
+        ]
+      },
+      "owner": "test_client.html",
+      "component_reason": "Sends each question over the open socket.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "string, from the question input."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-text",
+          "rules": [
+            "not empty and socket open, else nothing happens"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-bubble",
+          "title": "addBubble",
+          "origin": "private",
+          "description": "Shows the question. test_client.html:126",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-send",
+          "title": "socket.send",
+          "origin": "external",
+          "description": "Sends {type: \"message\", text}. test_client.html:127",
+          "show": true,
+          "calls": {
+            "component": "be.chat_socket",
+            "type": "rpc",
+            "label": "WS /ws/chat message",
+            "evidence": "test_client.html:127  socket.send(JSON.stringify({ type: \"message\", text }));"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-none",
+          "name": "none",
+          "description": "Side effects: bubble, socket message."
+        }
+      ],
+      "attributes": {
+        "is_async": false
       },
       "step_change": "added"
     }
