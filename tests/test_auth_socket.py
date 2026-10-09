@@ -1,7 +1,7 @@
 # Proves the auth handshake of /ws/chat: only a valid, unexpired token with known claims gets an answer.
 # ICS layer: test
 # Covers: be.chat_socket, be.handle_chat_socket, be.verify_jwt, be.service_mint_token, be.service_stream_answer
-# Step: added in step 1 (Authenticated WebSocket)
+# Step: added in step 1 (Authenticated WebSocket); changed in step 3: answers are preceded by a sources event
 
 import jwt  # to forge tokens the server must reject
 
@@ -10,12 +10,14 @@ from app.features.feature_auth.handlers.handle_mint_demo_tokens import handle_mi
 
 
 def _collect_answer(ws) -> str:
-    """Read stream events until "done" and return the joined answer text."""
+    """Read stream events until "done" and return the joined answer text (the sources event is skipped)."""
     text = ""
     while True:
         event = ws.receive_json()
         if event["type"] == "done":
             return text
+        if event["type"] == "sources":
+            continue
         assert event["type"] == "stream", event
         text += event["text"]
 

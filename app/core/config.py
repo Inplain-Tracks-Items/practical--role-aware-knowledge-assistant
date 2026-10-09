@@ -2,7 +2,7 @@
 # ICS layer: config
 # Called by: core/dependencies.py, feature_auth (JWT secret), feature_chat handler, feature_ingest and feature_sample_docs CLIs
 # Calls: pydantic-settings (reads the environment)
-# Step: added in step 1 (Authenticated WebSocket); changed in step 2: ingestion settings (docs, embeddings, Chroma, chunking, OCR)
+# Step: added in step 1 (Authenticated WebSocket); changed in step 2: ingestion settings (docs, embeddings, Chroma, chunking, OCR); changed in step 3: retrieval_top_k
 
 from functools import lru_cache  # caches get_settings() so .env is parsed once per process
 
@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     chunk_overlap_words: int = 30
     # EasyOCR language codes for scanned pages, comma-separated.
     ocr_languages: str = "en"
+
+    # Step 3 — retrieval.
+    # How many allowed chunks are retrieved per question; 4 paragraphs is enough context
+    # for these documents without drowning the model in loosely related text.
+    retrieval_top_k: int = 4
 
 
 @lru_cache

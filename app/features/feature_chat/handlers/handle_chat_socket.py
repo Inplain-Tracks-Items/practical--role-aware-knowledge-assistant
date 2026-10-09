@@ -2,8 +2,8 @@
 # ICS layer: handler
 # CRD component: be.handle_chat_socket
 # Called by: feature_chat/router.py (the /ws/chat door)
-# Calls: be.verify_jwt, be.service_stream_answer
-# Step: added in step 1 (Authenticated WebSocket)
+# Calls: be.verify_jwt, be.service_retrieve_chunks, be.service_stream_answer
+# Step: added in step 1 (Authenticated WebSocket); changed in step 3: retrieves allowed chunks and sends their sources
 
 from fastapi import WebSocket, WebSocketDisconnect  # the socket and the "client went away" signal
 
@@ -16,18 +16,30 @@ from app.features.feature_chat.schemas.chat_schemas import (  # every message sh
     ClientMessage,
     DoneEvent,
     ErrorEvent,
+    SourceRef,
+    SourcesEvent,
     StreamEvent,
 )
+from app.features.feature_chat.services.service_retrieve_chunks import service_retrieve_chunks  # access-filtered search
 from app.features.feature_chat.services.service_stream_answer import service_stream_answer  # talks to the LLM
-from app.providers.llm.base import LLMProvider  # interface of the injected LLM
+from app.providers.embeddings.base import EmbeddingProvider  # interfaces of the injected providers
+from app.providers.llm.base import LLMProvider
+from app.providers.vectorstore.base import VectorStore
 
 
-async def handle_chat_socket(websocket: WebSocket, settings: Settings, llm: LLMProvider) -> None:
+async def handle_chat_socket(
+    websocket: WebSocket,
+    settings: Settings,
+    llm: LLMProvider,
+    embedder: EmbeddingProvider,
+    store: VectorStore,
+) -> None:
     """Serve one chat connection until the client disconnects.
 
     websocket: the accepted-to-be connection from the door.
-    settings: JWT settings for the handshake.
+    settings: JWT settings for the handshake and retrieval_top_k.
     llm: the shared LLM provider, injected by the door.
+    embedder, store: the shared embedding provider and vector store, injected by the door.
     Returns when the client disconnects or the handshake fails (the socket is then closed).
     """
     # Step 1: accept the connection; nothing is answered until the client proves who it is.
@@ -76,7 +88,13 @@ async def handle_chat_socket(websocket: WebSocket, settings: Settings, llm: LLMP
             # Only questions are answered; a second auth message or an empty text is ignored.
             if message.type != "message" or not message.text:
                 continue
-            # Step 4: stream the answer piece by piece, then mark the end with "done".
+            # Step 4: retrieve the chunks this user may read that best match the question.
+            # The user's role and clearance come from the verified token (step 2), not from the message.
+            chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)
+            # Tell the client which pages were found (deduplicated, in relevance order).
+            pages = list(dict.fromkeys((c.source_file, c.page) for c in chunks))
+            await websocket.send_json(SourcesEvent(sources=[SourceRef(source_file=f, page=p) for f, p in pages]).model_dump())
+            # Step 5: stream the answer piece by piece, then mark the end with "done".
             async for piece in service_stream_answer(message.text, llm):
                 await websocket.send_json(StreamEvent(text=piece).model_dump())
             await websocket.send_json(DoneEvent().model_dump())

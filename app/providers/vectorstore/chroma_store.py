@@ -1,14 +1,16 @@
 # Chroma-backed VectorStore: one persistent collection on local disk, no server needed.
 # ICS layer: provider
-# CRD component: be.ChromaStore.upsert
-# Called by: core/dependencies.py, feature_ingest/services/service_store_chunks.py
+# CRD component: be.ChromaStore.upsert, be.ChromaStore.query
+# Called by: core/dependencies.py, feature_ingest/services/service_store_chunks.py, feature_chat/services/service_retrieve_chunks.py
 # Calls: chromadb (local persistent client)
-# Step: added in step 2 (Ingest tagged chunks)
+# Step: added in step 2 (Ingest tagged chunks); changed in step 3: query() with the access filter in the where clause
 
 import asyncio  # Chroma's client is synchronous; calls run in a worker thread
 from typing import Any  # metadata values are str / int / bool
 
 import chromadb  # embedded vector database
+
+from app.providers.vectorstore.retrieved_chunk import RetrievedChunk  # typed query result
 
 
 class ChromaStore:
@@ -32,3 +34,23 @@ class ChromaStore:
     async def count(self) -> int:
         """Number of stored chunks (used by the ingest summary and tests)."""
         return await asyncio.to_thread(self._collection.count)
+
+    def _query(self, embedding: list[float], top_k: int, where: dict[str, Any]) -> list[RetrievedChunk]:
+        """Run the filtered similarity search and flatten Chroma's nested result lists."""
+        # where is evaluated by Chroma before ranking: only chunks this user may read are
+        # candidates, so the top_k places are never wasted on forbidden chunks.
+        result = self._collection.query(
+            query_embeddings=[embedding],
+            n_results=top_k,
+            where=where,
+            include=["documents", "metadatas", "distances"],
+        )
+        # Chroma answers per query embedding; we sent one, so we read index [0] of each list.
+        return [
+            RetrievedChunk(text=text, source_file=meta["source_file"], page=meta["page"], distance=distance)
+            for text, meta, distance in zip(result["documents"][0], result["metadatas"][0], result["distances"][0])
+        ]
+
+    async def query(self, embedding: list[float], top_k: int, where: dict[str, Any]) -> list[RetrievedChunk]:
+        """Return up to top_k chunks matching where, most relevant first."""
+        return await asyncio.to_thread(self._query, embedding, top_k, where)

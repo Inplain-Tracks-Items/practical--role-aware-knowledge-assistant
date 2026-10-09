@@ -2,7 +2,7 @@
 # ICS layer: config (schemas)
 # Called by: feature_chat/handlers/handle_chat_socket.py
 # Calls: Pydantic validation
-# Step: added in step 1 (Authenticated WebSocket)
+# Step: added in step 1 (Authenticated WebSocket); changed in step 3: SourcesEvent
 
 from typing import Literal  # pins each message to its "type" value
 
@@ -36,6 +36,23 @@ class AuthFailedEvent(BaseModel):
 
     type: Literal["auth_failed"] = "auth_failed"
     message: str
+
+
+class SourceRef(BaseModel):
+    """One document page the answer may draw on: the citation shown to the user."""
+
+    source_file: str
+    page: int
+
+
+class SourcesEvent(BaseModel):
+    """Server -> client before the answer: the pages retrieved for this user and question.
+
+    Only pages the user may read can appear here, because retrieval filters by access.
+    """
+
+    type: Literal["sources"] = "sources"
+    sources: list[SourceRef]
 
 
 class StreamEvent(BaseModel):

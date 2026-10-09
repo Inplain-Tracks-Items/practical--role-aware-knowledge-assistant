@@ -2,10 +2,10 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T06:44:17Z",
+  "generated_at": "2026-10-09T06:48:38Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
-    "revision": "step-02-ingest-tagged-chunks",
+    "revision": "step-03-access-aware-retrieval",
     "roots": {
       "backend": "app"
     },
@@ -14,11 +14,11 @@
     ]
   },
   "step": {
-    "no": 2,
+    "no": 3,
     "of": 6,
-    "title": "Ingest tagged chunks",
-    "branch": "step-02-ingest-tagged-chunks",
-    "previous": "STEP-1.crd",
+    "title": "Access-aware retrieval",
+    "branch": "step-03-access-aware-retrieval",
+    "previous": "STEP-2.crd",
     "removed": []
   },
   "flows": [
@@ -293,7 +293,7 @@
         "symbol": "app.features.feature_chat.router.chat_socket",
         "lines": [
           18,
-          21
+          27
         ]
       },
       "owner": "feature_chat",
@@ -314,6 +314,16 @@
           "id": "in-llm",
           "name": "llm",
           "description": "LLMProvider, injected via Depends(get_llm_provider)."
+        },
+        {
+          "id": "in-embedder",
+          "name": "embedder",
+          "description": "EmbeddingProvider, injected via Depends(get_embedder)."
+        },
+        {
+          "id": "in-store",
+          "name": "store",
+          "description": "VectorStore, injected via Depends(get_vectorstore)."
         }
       ],
       "validations": [],
@@ -322,13 +332,13 @@
           "id": "op-delegate",
           "title": "handle_chat_socket",
           "origin": "imported",
-          "description": "Passes the socket and the dependencies through. app/features/feature_chat/router.py:21",
+          "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27",
           "show": true,
           "calls": {
             "component": "be.handle_chat_socket",
             "type": "await",
             "label": "delegates",
-            "evidence": "app/features/feature_chat/router.py:21  await handle_chat_socket(websocket, settings, llm)"
+            "evidence": "app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)"
           }
         }
       ],
@@ -343,9 +353,10 @@
         "is_async": true,
         "endpoint": "WS /ws/chat",
         "decorators": "@router.websocket(\"/ws/chat\")",
+        "step_note": "injects the embedder and the vector store and passes them to the handler",
         "validations_note": "no input checks in code"
       },
-      "step_change": "unchanged"
+      "step_change": "changed"
     },
     {
       "id": "be.handle_chat_socket",
@@ -361,8 +372,8 @@
         "file": "app/features/feature_chat/handlers/handle_chat_socket.py",
         "symbol": "app.features.feature_chat.handlers.handle_chat_socket.handle_chat_socket",
         "lines": [
-          25,
-          85
+          30,
+          103
         ]
       },
       "owner": "feature_chat",
@@ -377,12 +388,22 @@
         {
           "id": "in-settings",
           "name": "settings",
-          "description": "Settings, from the door. Used for JWT verification."
+          "description": "Settings, from the door. JWT verification and retrieval_top_k."
         },
         {
           "id": "in-llm",
           "name": "llm",
           "description": "LLMProvider, from the door."
+        },
+        {
+          "id": "in-embedder",
+          "name": "embedder",
+          "description": "EmbeddingProvider, from the door."
+        },
+        {
+          "id": "in-store",
+          "name": "store",
+          "description": "VectorStore, from the door."
         },
         {
           "id": "in-auth",
@@ -417,7 +438,7 @@
           "id": "op-accept",
           "title": "websocket.accept",
           "origin": "external",
-          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:34",
+          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:46",
           "show": true,
           "calls": null
         },
@@ -425,7 +446,7 @@
           "id": "op-recv-auth",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:38",
+          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:50",
           "show": true,
           "calls": null
         },
@@ -433,20 +454,20 @@
           "id": "op-verify",
           "title": "verify_jwt",
           "origin": "imported",
-          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:54",
+          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:66",
           "show": true,
           "calls": {
             "component": "be.verify_jwt",
             "type": "call",
             "label": "verify token",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:54  user = verify_jwt(first.token, settings)"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:66  user = verify_jwt(first.token, settings)"
           }
         },
         {
           "id": "op-auth-ok",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:61",
+          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:73",
           "show": true,
           "calls": null
         },
@@ -454,7 +475,28 @@
           "id": "op-recv",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:68",
+          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:80",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-retrieve",
+          "title": "service_retrieve_chunks",
+          "origin": "imported",
+          "description": "Retrieves up to retrieval_top_k chunks the user may read. app/features/feature_chat/handlers/handle_chat_socket.py:93",
+          "show": true,
+          "calls": {
+            "component": "be.service_retrieve_chunks",
+            "type": "await",
+            "label": "retrieve allowed chunks",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:93  chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)"
+          }
+        },
+        {
+          "id": "op-sources",
+          "title": "websocket.send_json",
+          "origin": "external",
+          "description": "Sends a sources event with the deduplicated (file, page) pairs. app/features/feature_chat/handlers/handle_chat_socket.py:96",
           "show": true,
           "calls": null
         },
@@ -462,20 +504,20 @@
           "id": "op-answer",
           "title": "service_stream_answer",
           "origin": "imported",
-          "description": "Streams the answer to the question. app/features/feature_chat/handlers/handle_chat_socket.py:80",
+          "description": "Streams the answer to the question. app/features/feature_chat/handlers/handle_chat_socket.py:98",
           "show": true,
           "calls": {
             "component": "be.service_stream_answer",
             "type": "await",
             "label": "stream answer",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:80  async for piece in service_stream_answer(message.text, llm):"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:98  async for piece in service_stream_answer(message.text, llm):"
           }
         },
         {
           "id": "op-stream",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:81",
+          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:99",
           "show": true,
           "calls": null
         },
@@ -483,7 +525,7 @@
           "id": "op-done",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:82",
+          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:100",
           "show": true,
           "calls": null
         }
@@ -498,6 +540,11 @@
           "id": "out-auth-failed",
           "name": "event.auth_failed",
           "description": "{type, message}; the socket is closed afterwards."
+        },
+        {
+          "id": "out-sources",
+          "name": "event.sources",
+          "description": "{type, sources: [{source_file, page}]} before each answer; allowed pages only."
         },
         {
           "id": "out-stream",
@@ -516,9 +563,10 @@
         }
       ],
       "attributes": {
-        "is_async": true
+        "is_async": true,
+        "step_note": "retrieves the allowed chunks for each question and sends a sources event before the answer"
       },
-      "step_change": "unchanged"
+      "step_change": "changed"
     },
     {
       "id": "be.verify_jwt",
@@ -896,7 +944,7 @@
         "endpoint": "python -m app.features.feature_sample_docs.cli",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.handle_build_sample_docs",
@@ -1005,7 +1053,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_read_text_file",
@@ -1067,7 +1115,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_render_text_pdf",
@@ -1124,7 +1172,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_rasterize_pdf",
@@ -1181,7 +1229,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_write_file",
@@ -1243,7 +1291,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.ingest_cli",
@@ -1356,7 +1404,7 @@
         "endpoint": "python -m app.features.feature_ingest.cli",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.handle_ingest_documents",
@@ -1530,7 +1578,7 @@
       "attributes": {
         "is_async": true
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_list_pdfs",
@@ -1593,7 +1641,7 @@
       "attributes": {
         "is_async": true
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_extract_pages",
@@ -1650,7 +1698,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_ocr_page",
@@ -1731,7 +1779,7 @@
         "evidence": "OcrProvider injected from get_ocr_provider (EasyOcrProvider)",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_chunk_text",
@@ -1820,7 +1868,7 @@
       "attributes": {
         "is_async": false
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.util_build_chunk_metadata",
@@ -1896,7 +1944,7 @@
         "notes": "util (pure); drawn in the service layer",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_embed_texts",
@@ -1978,7 +2026,7 @@
         "is_async": true,
         "evidence": "EmbeddingProvider injected from get_embedder"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.service_store_chunks",
@@ -2056,7 +2104,7 @@
       "attributes": {
         "is_async": true
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.SentenceTransformersProvider.embed_documents",
@@ -2113,7 +2161,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.HashingProvider.embed_documents",
@@ -2165,7 +2213,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.ChromaStore.upsert",
@@ -2181,8 +2229,8 @@
         "file": "app/providers/vectorstore/chroma_store.py",
         "symbol": "app.providers.vectorstore.chroma_store.ChromaStore.upsert",
         "lines": [
-          28,
-          30
+          30,
+          32
         ]
       },
       "owner": "providers/vectorstore",
@@ -2216,13 +2264,13 @@
           "id": "op-upsert",
           "title": "collection.upsert",
           "origin": "external",
-          "description": "Chroma upsert via asyncio.to_thread. app/providers/vectorstore/chroma_store.py:30",
+          "description": "Chroma upsert via asyncio.to_thread. app/providers/vectorstore/chroma_store.py:32",
           "show": true,
           "calls": {
             "component": "ext.chroma_db",
             "type": "await",
             "label": "upsert",
-            "evidence": "app/providers/vectorstore/chroma_store.py:30  await asyncio.to_thread(self._collection.upsert, ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)"
+            "evidence": "app/providers/vectorstore/chroma_store.py:32  await asyncio.to_thread(self._collection.upsert, ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)"
           }
         }
       ],
@@ -2237,7 +2285,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.EasyOcrProvider.read_text",
@@ -2294,7 +2342,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.get_embedder",
@@ -2304,7 +2352,8 @@
       "layer": "provider",
       "description": "Builds the embedding provider selected by EMBEDDING_PROVIDER once per process.",
       "flows": [
-        "ingest-documents"
+        "ingest-documents",
+        "chat-session"
       ],
       "source": {
         "file": "app/core/dependencies.py",
@@ -2366,7 +2415,7 @@
         "is_async": false,
         "decorators": "@lru_cache"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.get_vectorstore",
@@ -2376,7 +2425,8 @@
       "layer": "provider",
       "description": "Opens the Chroma collection once per process.",
       "flows": [
-        "ingest-documents"
+        "ingest-documents",
+        "chat-session"
       ],
       "source": {
         "file": "app/core/dependencies.py",
@@ -2419,7 +2469,7 @@
         "decorators": "@lru_cache",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.get_ocr_provider",
@@ -2472,7 +2522,7 @@
         "decorators": "@lru_cache",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.file_system",
@@ -2496,7 +2546,7 @@
       "attributes": {
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.pymupdf",
@@ -2520,7 +2570,7 @@
       "attributes": {
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.chroma_db",
@@ -2530,7 +2580,8 @@
       "layer": "data",
       "description": "Persistent local Chroma collection with documents, cosine vectors and access metadata.",
       "flows": [
-        "ingest-documents"
+        "ingest-documents",
+        "chat-session"
       ],
       "source": null,
       "owner": "chromadb",
@@ -2543,7 +2594,7 @@
       "attributes": {
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.sentence_transformers",
@@ -2553,7 +2604,8 @@
       "layer": "external",
       "description": "Local embedding model runtime.",
       "flows": [
-        "ingest-documents"
+        "ingest-documents",
+        "chat-session"
       ],
       "source": null,
       "owner": "third-party",
@@ -2566,7 +2618,7 @@
       "attributes": {
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.easyocr",
@@ -2587,6 +2639,359 @@
       "operations": [],
       "outputs": [],
       "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.service_retrieve_chunks",
+      "name": "service_retrieve_chunks",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Embeds the question and queries the vector store with the user's access filter inside the query.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/services/service_retrieve_chunks.py",
+        "symbol": "app.features.feature_chat.services.service_retrieve_chunks.service_retrieve_chunks",
+        "lines": [
+          15,
+          36
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "The access-aware search: the one place where identity meets the vector store.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-question",
+          "name": "question",
+          "description": "str, required. The user's message."
+        },
+        {
+          "id": "in-user",
+          "name": "user",
+          "description": "TokenClaims, required. Verified role and clearance."
+        },
+        {
+          "id": "in-embedder",
+          "name": "embedder",
+          "description": "EmbeddingProvider, injected."
+        },
+        {
+          "id": "in-store",
+          "name": "store",
+          "description": "VectorStore, injected."
+        },
+        {
+          "id": "in-topk",
+          "name": "top_k",
+          "description": "int, required. settings.retrieval_top_k (default 4)."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-filter",
+          "title": "util_build_access_filter",
+          "origin": "imported",
+          "description": "Builds the where-filter from role and clearance. app/features/feature_chat/services/service_retrieve_chunks.py:31",
+          "show": true,
+          "calls": {
+            "component": "be.util_build_access_filter",
+            "type": "call",
+            "label": "build access filter",
+            "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:31  where = util_build_access_filter(user)"
+          }
+        },
+        {
+          "id": "op-embed",
+          "title": "embedder.embed_query",
+          "origin": "imported",
+          "description": "Embeds the question (EMBEDDING_PROVIDER=sentence-transformers). app/features/feature_chat/services/service_retrieve_chunks.py:33",
+          "show": true,
+          "calls": {
+            "component": "be.SentenceTransformersProvider.embed_query",
+            "type": "await",
+            "label": "embed query (sentence-transformers)",
+            "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:33  embedding = await embedder.embed_query(question)"
+          }
+        },
+        {
+          "id": "op-embed-hashing",
+          "title": "embedder.embed_query",
+          "origin": "imported",
+          "description": "Same call when EMBEDDING_PROVIDER=hashing. app/features/feature_chat/services/service_retrieve_chunks.py:33",
+          "show": true,
+          "calls": {
+            "component": "be.HashingProvider.embed_query",
+            "type": "await",
+            "label": "embed query (hashing)",
+            "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:33  embedding = await embedder.embed_query(question)"
+          }
+        },
+        {
+          "id": "op-query",
+          "title": "store.query",
+          "origin": "imported",
+          "description": "Filtered similarity search; no Python post-filtering. app/features/feature_chat/services/service_retrieve_chunks.py:36",
+          "show": true,
+          "calls": {
+            "component": "be.ChromaStore.query",
+            "type": "await",
+            "label": "filtered query",
+            "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:36  return await store.query(embedding, top_k, where)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-chunks",
+          "name": "list[RetrievedChunk]",
+          "description": "text, source_file, page, distance; most relevant first; allowed chunks only."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.util_build_access_filter",
+      "name": "util_build_access_filter",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Returns {\"$and\": [{aud_<role>: True}, {clearance_rank: {$lte: rank}}]} for the user.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/utils/util_build_access_filter.py",
+        "symbol": "app.features.feature_chat.utils.util_build_access_filter.util_build_access_filter",
+        "lines": [
+          14,
+          31
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "The access rule as data; pure and separately tested.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-user",
+          "name": "user",
+          "description": "TokenClaims. role and clearance from the verified token."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-role",
+          "title": "inline: role flag",
+          "origin": "inline",
+          "description": "Adds {aud_<role>: True}. app/features/feature_chat/utils/util_build_access_filter.py:27",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-rank",
+          "title": "CLEARANCE_RANKS",
+          "origin": "imported",
+          "description": "Adds {clearance_rank: {$lte: <user rank>}}. app/features/feature_chat/utils/util_build_access_filter.py:29",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-where",
+          "name": "dict",
+          "description": "Chroma where-filter."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "notes": "util (pure); drawn in the service layer",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.ChromaStore.query",
+      "name": "ChromaStore.query",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Runs collection.query with the where-filter applied before ranking and maps the result to RetrievedChunk.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/vectorstore/chroma_store.py",
+        "symbol": "app.providers.vectorstore.chroma_store.ChromaStore.query",
+        "lines": [
+          54,
+          56
+        ]
+      },
+      "owner": "providers/vectorstore",
+      "component_reason": "Concrete VectorStore read with metadata filtering.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-emb",
+          "name": "embedding",
+          "description": "list[float]."
+        },
+        {
+          "id": "in-topk",
+          "name": "top_k",
+          "description": "int."
+        },
+        {
+          "id": "in-where",
+          "name": "where",
+          "description": "dict, Chroma filter."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-query",
+          "title": "_query",
+          "origin": "private",
+          "description": "In a worker thread: collection.query(query_embeddings=[embedding], n_results=top_k, where=where), flattened to RetrievedChunk. app/providers/vectorstore/chroma_store.py:56",
+          "show": true,
+          "calls": {
+            "component": "ext.chroma_db",
+            "type": "await",
+            "label": "filtered similarity search",
+            "evidence": "app/providers/vectorstore/chroma_store.py:56  return await asyncio.to_thread(self._query, embedding, top_k, where)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-chunks",
+          "name": "list[RetrievedChunk]",
+          "description": "Up to top_k results."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.SentenceTransformersProvider.embed_query",
+      "name": "SentenceTransformersProvider.embed_query",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Encodes a search query with the bge instruction prefix.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/embeddings/sentence_transformers_provider.py",
+        "symbol": "app.providers.embeddings.sentence_transformers_provider.SentenceTransformersProvider.embed_query",
+        "lines": [
+          35,
+          38
+        ]
+      },
+      "owner": "providers/embeddings",
+      "component_reason": "Query side of the default embedding provider (different prefix from passages).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-encode",
+          "title": "SentenceTransformer.encode",
+          "origin": "external",
+          "description": "encode(QUERY_PREFIX + text, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:37",
+          "show": true,
+          "calls": {
+            "component": "ext.sentence_transformers",
+            "type": "await",
+            "label": "encode query",
+            "evidence": "app/providers/embeddings/sentence_transformers_provider.py:37  vector = await asyncio.to_thread(self._model.encode, QUERY_PREFIX + text, normalize_embeddings=True)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-vector",
+          "name": "list[float]",
+          "description": "384-dimensional normalised vector."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.HashingProvider.embed_query",
+      "name": "HashingProvider.embed_query",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Hashes a query exactly like a passage.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/embeddings/hashing_provider.py",
+        "symbol": "app.providers.embeddings.hashing_provider.HashingProvider.embed_query",
+        "lines": [
+          46,
+          48
+        ]
+      },
+      "owner": "providers/embeddings",
+      "component_reason": "Query side of the offline embedding provider.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-embed",
+          "title": "_embed",
+          "origin": "private",
+          "description": "Hashed bag-of-words vector. app/providers/embeddings/hashing_provider.py:48",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-vector",
+          "name": "list[float]",
+          "description": "512-dimensional normalised vector."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
         "validations_note": "no input checks in code"
       },
       "step_change": "added"
