@@ -99,7 +99,7 @@
         "categories": 8,
         "items": 43,
         "overview_items": 14,
-        "component_items": 75,
+        "component_items": 0,
         "inkp_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant/blob/main/role-aware-knowledge-assistant.inkp",
         "step_items": 26,
         "conclusion_items": 3,
@@ -107,5 +107,5 @@
       }
     }
   },
-  "updated_at": "2026-10-09T14:07:05.270Z"
+  "updated_at": "2026-10-09T14:07:17.948Z"
 }
