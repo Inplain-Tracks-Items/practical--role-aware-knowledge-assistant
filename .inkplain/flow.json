@@ -4,7 +4,7 @@
     "slug": "role-aware-knowledge-assistant",
     "name": "Role-Aware Knowledge Assistant"
   },
-  "current": "content",
+  "current": "done",
   "stages": {
     "intro": {
       "status": "done",
@@ -89,12 +89,20 @@
       }
     },
     "content": {
-      "status": "in_progress",
-      "summary": "Gate 3 approved; creating CRD-driven portal categories and items.",
+      "status": "done",
+      "summary": "Published 6 step categories and 81 public learning items (6 overviews + 75 component items), based on step CRDs, with CRD tree/matrix and STEP-N .inkp diagrams. Read-back checked an overview and component item in every step, plus category item counts. Component lessons link to source files; full inline source examples are not uniformly embedded. Live browser rendering was not checked.",
       "started_at": "2026-10-09T12:31:03.341Z",
-      "finished_at": null,
-      "updated_by": "api-key:for-chatgpt-test-2"
+      "finished_at": "2026-10-09T12:43:25.999Z",
+      "updated_by": "api-key:for-chatgpt-test-2",
+      "outputs": {
+        "portal_url": "/practical-case/role-aware-knowledge-assistant",
+        "categories": 6,
+        "items": 81,
+        "overview_items": 6,
+        "component_items": 75,
+        "inkp_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant/blob/main/role-aware-knowledge-assistant.inkp"
+      }
     }
   },
-  "updated_at": "2026-10-09T12:31:03.341Z"
+  "updated_at": "2026-10-09T12:43:25.999Z"
 }
