@@ -4,7 +4,7 @@
     "slug": "role-aware-knowledge-assistant",
     "name": "Role-Aware Knowledge Assistant"
   },
-  "current": "content",
+  "current": "done",
   "stages": {
     "intro": {
       "status": "done",
@@ -89,20 +89,23 @@
       }
     },
     "content": {
-      "status": "in_progress",
-      "summary": "Rebuilding Stage 4 to current revised skill: Overview + six steps (system design, consolidated 4M components, line-by-line, run/check) + Conclusion; replacing obsolete 81 individual-component items.",
+      "status": "done",
+      "summary": "Rebuilt portal content to revised skill: 8 categories (Overview, STEP-1..STEP-6, Conclusion), 43 public items (14 Overview, 26 step lessons, 3 Conclusion). Removed all 81 superseded per-component items. Added consolidated 4M component analysis, CRD trees, six .inkp diagrams, GitHub file links, run/self-checks and selected real inline source excerpts. Set all seven case profile skills to beginner. Verified category counts, 0 obsolete items, sample bodies, and skill levels. Full source-code line-by-line detail for every function and live browser rendering remain unchecked.",
       "started_at": "2026-10-09T12:31:03.341Z",
-      "finished_at": null,
+      "finished_at": "2026-10-09T14:07:05.270Z",
       "updated_by": "api-key:for-chatgpt-test-2",
       "outputs": {
         "portal_url": "/practical-case/role-aware-knowledge-assistant",
-        "categories": 6,
-        "items": 81,
-        "overview_items": 6,
+        "categories": 8,
+        "items": 43,
+        "overview_items": 14,
         "component_items": 75,
-        "inkp_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant/blob/main/role-aware-knowledge-assistant.inkp"
+        "inkp_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant/blob/main/role-aware-knowledge-assistant.inkp",
+        "step_items": 26,
+        "conclusion_items": 3,
+        "obsolete_items_removed": 81
       }
     }
   },
-  "updated_at": "2026-10-09T13:46:02.743Z"
+  "updated_at": "2026-10-09T14:07:05.270Z"
 }
