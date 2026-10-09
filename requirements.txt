@@ -1,0 +1,10 @@
+# Web framework and its server: FastAPI app, WebSocket support via uvicorn[standard]
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+# Typed settings read from .env
+pydantic-settings==2.15.0
+# JWT signing and verification
+PyJWT==2.14.0
+# Tests: pytest runs them, httpx powers FastAPI's TestClient
+pytest==9.1.1
+httpx==0.28.1
