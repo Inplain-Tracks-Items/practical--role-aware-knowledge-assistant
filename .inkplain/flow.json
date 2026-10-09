@@ -68,7 +68,14 @@
           }
         ]
       }
+    },
+    "inkp": {
+      "status": "in_progress",
+      "summary": "Building role-aware-knowledge-assistant.inkp (tabs STEP-1..STEP-6) from the STEP-N.crd files.",
+      "started_at": "2026-10-09T09:15:58.331Z",
+      "finished_at": null,
+      "updated_by": "api-key:eeeeeeeeeeeeeeeeee"
     }
   },
-  "updated_at": "2026-10-09T09:13:14.984Z"
+  "updated_at": "2026-10-09T09:15:58.331Z"
 }
