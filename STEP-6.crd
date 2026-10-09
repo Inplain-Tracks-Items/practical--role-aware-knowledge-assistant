@@ -2,7 +2,7 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T09:07:23Z",
+  "generated_at": "2026-10-09T09:56:25Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
     "revision": "step-06-hardening",
@@ -336,6 +336,45 @@
       ],
       "validations": [],
       "operations": [
+        {
+          "id": "op-dep-llm",
+          "title": "get_llm_provider",
+          "origin": "imported",
+          "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22",
+          "show": true,
+          "calls": {
+            "component": "be.get_llm_provider",
+            "type": "call",
+            "label": "injected via Depends",
+            "evidence": "app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),"
+          }
+        },
+        {
+          "id": "op-dep-embedder",
+          "title": "get_embedder",
+          "origin": "imported",
+          "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23",
+          "show": true,
+          "calls": {
+            "component": "be.get_embedder",
+            "type": "call",
+            "label": "injected via Depends",
+            "evidence": "app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),"
+          }
+        },
+        {
+          "id": "op-dep-store",
+          "title": "get_vectorstore",
+          "origin": "imported",
+          "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24",
+          "show": true,
+          "calls": {
+            "component": "be.get_vectorstore",
+            "type": "call",
+            "label": "injected via Depends",
+            "evidence": "app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),"
+          }
+        },
         {
           "id": "op-delegate",
           "title": "handle_chat_socket",
