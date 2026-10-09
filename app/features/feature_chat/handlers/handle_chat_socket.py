@@ -2,9 +2,10 @@
 # ICS layer: handler
 # CRD component: be.handle_chat_socket
 # Called by: feature_chat/router.py (the /ws/chat door)
-# Calls: be.verify_jwt, be.service_retrieve_chunks, be.service_build_prompt, be.service_stream_answer
+# Calls: be.verify_jwt, be.tool_bind_shipment_overview, be.service_retrieve_chunks, be.service_build_prompt, be.service_stream_answer
 # Step: added in step 1 (Authenticated WebSocket); changed in step 3: retrieves allowed chunks and sends their sources;
-#       changed in step 4: builds the prompt from the allowed chunks for the LLM
+#       changed in step 4: builds the prompt from the allowed chunks for the LLM;
+#       changed in step 5: gives the LLM the shipment tool, bound to this connection's user
 
 from fastapi import WebSocket, WebSocketDisconnect  # the socket and the "client went away" signal
 
@@ -24,6 +25,7 @@ from app.features.feature_chat.schemas.chat_schemas import (  # every message sh
 from app.features.feature_chat.services.service_build_prompt import service_build_prompt  # rules + allowed passages
 from app.features.feature_chat.services.service_retrieve_chunks import service_retrieve_chunks  # access-filtered search
 from app.features.feature_chat.services.service_stream_answer import service_stream_answer  # talks to the LLM
+from app.features.feature_shipment_tool.tool_bind_shipment_overview import tool_bind_shipment_overview  # public tool entry
 from app.providers.embeddings.base import EmbeddingProvider  # interfaces of the injected providers
 from app.providers.llm.base import LLMProvider
 from app.providers.vectorstore.base import VectorStore
@@ -75,6 +77,10 @@ async def handle_chat_socket(
         AuthSuccessEvent(user_id=user.sub, name=user.name, role=user.role, clearance=user.clearance).model_dump()
     )
 
+    # The shipment tool is bound to this user once per connection: the model can pass a
+    # shipment id, never an identity.
+    tools = [tool_bind_shipment_overview(user)]
+
     # Step 3: message loop, one question at a time, until the client disconnects.
     try:
         while True:
@@ -99,7 +105,7 @@ async def handle_chat_socket(
             # Step 5: build the prompt from those chunks only; the model never sees anything else.
             system_prompt = service_build_prompt(chunks)
             # Step 6: stream the answer piece by piece, then mark the end with "done".
-            async for piece in service_stream_answer(system_prompt, message.text, llm):
+            async for piece in service_stream_answer(system_prompt, message.text, llm, tools):
                 await websocket.send_json(StreamEvent(text=piece).model_dump())
             await websocket.send_json(DoneEvent().model_dump())
     except WebSocketDisconnect:

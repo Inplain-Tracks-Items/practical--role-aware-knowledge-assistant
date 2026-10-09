@@ -2,10 +2,10 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T06:52:52Z",
+  "generated_at": "2026-10-09T06:59:42Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
-    "revision": "step-04-stream-answers",
+    "revision": "step-05-parallel-shipment-tools",
     "roots": {
       "backend": "app"
     },
@@ -14,11 +14,11 @@
     ]
   },
   "step": {
-    "no": 4,
+    "no": 5,
     "of": 6,
-    "title": "Stream answers",
-    "branch": "step-04-stream-answers",
-    "previous": "STEP-3.crd",
+    "title": "Parallel shipment tools",
+    "branch": "step-05-parallel-shipment-tools",
+    "previous": "STEP-4.crd",
     "removed": []
   },
   "flows": [
@@ -45,6 +45,12 @@
       "name": "Ingest documents",
       "description": "PDF pages (OCR for scanned ones) become chunks tagged with audience and clearance, embedded and stored in Chroma.",
       "entry": "be.ingest_cli"
+    },
+    {
+      "id": "shipment-lookup",
+      "name": "Shipment lookup tool",
+      "description": "The model calls the user-bound get_shipment_overview tool; visibility is checked, then status, ETA and SLA are fetched concurrently.",
+      "entry": "be.get_shipment_overview"
     }
   ],
   "components": [
@@ -371,8 +377,8 @@
         "file": "app/features/feature_chat/handlers/handle_chat_socket.py",
         "symbol": "app.features.feature_chat.handlers.handle_chat_socket.handle_chat_socket",
         "lines": [
-          32,
-          107
+          34,
+          113
         ]
       },
       "owner": "feature_chat",
@@ -437,7 +443,7 @@
           "id": "op-accept",
           "title": "websocket.accept",
           "origin": "external",
-          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:48",
+          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:50",
           "show": true,
           "calls": null
         },
@@ -445,7 +451,7 @@
           "id": "op-recv-auth",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:52",
+          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:54",
           "show": true,
           "calls": null
         },
@@ -453,28 +459,41 @@
           "id": "op-verify",
           "title": "verify_jwt",
           "origin": "imported",
-          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:68",
+          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:70",
           "show": true,
           "calls": {
             "component": "be.verify_jwt",
             "type": "call",
             "label": "verify token",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:68  user = verify_jwt(first.token, settings)"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:70  user = verify_jwt(first.token, settings)"
           }
         },
         {
           "id": "op-auth-ok",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:75",
+          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:77",
           "show": true,
           "calls": null
+        },
+        {
+          "id": "op-bind",
+          "title": "tool_bind_shipment_overview",
+          "origin": "imported",
+          "description": "Binds the shipment tool to this connection's user, once. app/features/feature_chat/handlers/handle_chat_socket.py:82",
+          "show": true,
+          "calls": {
+            "component": "be.tool_bind_shipment_overview",
+            "type": "call",
+            "label": "bind tool to user",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:82  tools = [tool_bind_shipment_overview(user)]"
+          }
         },
         {
           "id": "op-recv",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:82",
+          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:88",
           "show": true,
           "calls": null
         },
@@ -482,20 +501,20 @@
           "id": "op-retrieve",
           "title": "service_retrieve_chunks",
           "origin": "imported",
-          "description": "Retrieves up to retrieval_top_k chunks the user may read. app/features/feature_chat/handlers/handle_chat_socket.py:95",
+          "description": "Retrieves up to retrieval_top_k chunks the user may read. app/features/feature_chat/handlers/handle_chat_socket.py:101",
           "show": true,
           "calls": {
             "component": "be.service_retrieve_chunks",
             "type": "await",
             "label": "retrieve allowed chunks",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:95  chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:101  chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)"
           }
         },
         {
           "id": "op-sources",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends a sources event with the deduplicated (file, page) pairs. app/features/feature_chat/handlers/handle_chat_socket.py:98",
+          "description": "Sends a sources event with the deduplicated (file, page) pairs. app/features/feature_chat/handlers/handle_chat_socket.py:104",
           "show": true,
           "calls": null
         },
@@ -503,33 +522,33 @@
           "id": "op-prompt",
           "title": "service_build_prompt",
           "origin": "imported",
-          "description": "Builds rules + labelled allowed passages. app/features/feature_chat/handlers/handle_chat_socket.py:100",
+          "description": "Builds rules + labelled allowed passages. app/features/feature_chat/handlers/handle_chat_socket.py:106",
           "show": true,
           "calls": {
             "component": "be.service_build_prompt",
             "type": "call",
             "label": "build prompt",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:100  system_prompt = service_build_prompt(chunks)"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:106  system_prompt = service_build_prompt(chunks)"
           }
         },
         {
           "id": "op-answer",
           "title": "service_stream_answer",
           "origin": "imported",
-          "description": "Streams the LLM answer for the prompt and the question. app/features/feature_chat/handlers/handle_chat_socket.py:102",
+          "description": "Streams the LLM answer for the prompt, the question and the bound tools. app/features/feature_chat/handlers/handle_chat_socket.py:108",
           "show": true,
           "calls": {
             "component": "be.service_stream_answer",
             "type": "await",
-            "label": "stream answer",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:102  async for piece in service_stream_answer(system_prompt, message.text, llm):"
+            "label": "stream answer (with tools)",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:108  async for piece in service_stream_answer(system_prompt, message.text, llm, tools):"
           }
         },
         {
           "id": "op-stream",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:103",
+          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:109",
           "show": true,
           "calls": null
         },
@@ -537,7 +556,7 @@
           "id": "op-done",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:104",
+          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:110",
           "show": true,
           "calls": null
         }
@@ -576,7 +595,7 @@
       ],
       "attributes": {
         "is_async": true,
-        "step_note": "builds the system prompt from the allowed chunks and passes it to the LLM"
+        "step_note": "binds the shipment tool to the user and passes it to the LLM"
       },
       "step_change": "changed"
     },
@@ -677,8 +696,8 @@
         "file": "app/features/feature_chat/services/service_stream_answer.py",
         "symbol": "app.features.feature_chat.services.service_stream_answer.service_stream_answer",
         "lines": [
-          13,
-          23
+          14,
+          30
         ]
       },
       "owner": "feature_chat",
@@ -699,6 +718,11 @@
           "id": "in-llm",
           "name": "llm",
           "description": "LLMProvider, required. Injected singleton chosen by LLM_PROVIDER."
+        },
+        {
+          "id": "in-tools",
+          "name": "tools",
+          "description": "list[Callable] | None, optional. Bound by tool_bind_shipment_overview."
         }
       ],
       "validations": [],
@@ -707,39 +731,39 @@
           "id": "op-stream",
           "title": "llm.stream_chat",
           "origin": "imported",
-          "description": "LLM_PROVIDER=fake: offline echo. app/features/feature_chat/services/service_stream_answer.py:22",
+          "description": "LLM_PROVIDER=fake: offline echo. app/features/feature_chat/services/service_stream_answer.py:29",
           "show": true,
           "calls": {
             "component": "be.FakeProvider.stream_chat",
             "type": "await",
             "label": "stream_chat (fake)",
-            "evidence": "app/features/feature_chat/services/service_stream_answer.py:22  async for piece in llm.stream_chat(system_prompt, user_message):"
+            "evidence": "app/features/feature_chat/services/service_stream_answer.py:29  async for piece in llm.stream_chat(system_prompt, user_message, tools=tools):"
           }
         },
         {
           "id": "op-stream-openai",
           "title": "llm.stream_chat",
           "origin": "imported",
-          "description": "LLM_PROVIDER=openai. app/features/feature_chat/services/service_stream_answer.py:22",
+          "description": "LLM_PROVIDER=openai. app/features/feature_chat/services/service_stream_answer.py:29",
           "show": true,
           "calls": {
             "component": "be.OpenAIProvider.stream_chat",
             "type": "await",
             "label": "stream_chat (openai)",
-            "evidence": "app/features/feature_chat/services/service_stream_answer.py:22  async for piece in llm.stream_chat(system_prompt, user_message):"
+            "evidence": "app/features/feature_chat/services/service_stream_answer.py:29  async for piece in llm.stream_chat(system_prompt, user_message, tools=tools):"
           }
         },
         {
           "id": "op-stream-gemini",
           "title": "llm.stream_chat",
           "origin": "imported",
-          "description": "LLM_PROVIDER=gemini. app/features/feature_chat/services/service_stream_answer.py:22",
+          "description": "LLM_PROVIDER=gemini. app/features/feature_chat/services/service_stream_answer.py:29",
           "show": true,
           "calls": {
             "component": "be.GeminiProvider.stream_chat",
             "type": "await",
             "label": "stream_chat (gemini)",
-            "evidence": "app/features/feature_chat/services/service_stream_answer.py:22  async for piece in llm.stream_chat(system_prompt, user_message):"
+            "evidence": "app/features/feature_chat/services/service_stream_answer.py:29  async for piece in llm.stream_chat(system_prompt, user_message, tools=tools):"
           }
         }
       ],
@@ -753,7 +777,7 @@
       "attributes": {
         "is_async": true,
         "evidence": "concrete provider chosen by get_llm_provider from LLM_PROVIDER",
-        "step_note": "takes the system prompt from service_build_prompt instead of a fixed one",
+        "step_note": "passes the user-bound tools to the provider",
         "validations_note": "no input checks in code"
       },
       "step_change": "changed"
@@ -764,7 +788,7 @@
       "kind": "method",
       "side": "backend",
       "layer": "provider",
-      "description": "Offline LLM: streams \"Echo: <question>\" word by word.",
+      "description": "Offline LLM: echoes the question, or calls the first tool with an id-like token from the question and streams its result.",
       "flows": [
         "chat-session"
       ],
@@ -772,8 +796,8 @@
         "file": "app/providers/llm/fake_provider.py",
         "symbol": "app.providers.llm.fake_provider.FakeProvider.stream_chat",
         "lines": [
-          14,
-          27
+          19,
+          39
         ]
       },
       "owner": "providers/llm",
@@ -788,21 +812,42 @@
         {
           "id": "in-msg",
           "name": "user_message",
-          "description": "str. Echoed back."
+          "description": "str. Echoed, or searched for an id like NW-1042."
         },
         {
           "id": "in-tools",
           "name": "tools",
-          "description": "list[Callable] | None. Accepted, not used in this step."
+          "description": "list[Callable] | None. The first tool is called when an id is found."
         }
       ],
       "validations": [],
       "operations": [
         {
+          "id": "op-match",
+          "title": "ID_PATTERN.search",
+          "origin": "external",
+          "description": "Looks for an id-like token ([A-Z]{2,}-digits). app/providers/llm/fake_provider.py:30",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-tool",
+          "title": "tools[0]",
+          "origin": "imported",
+          "description": "if tools and an id was found: awaits the tool with the id. app/providers/llm/fake_provider.py:33",
+          "show": true,
+          "calls": {
+            "component": "be.get_shipment_overview",
+            "type": "callback",
+            "label": "if id in question: call tool",
+            "evidence": "app/providers/llm/fake_provider.py:33  result = await tools[0](match.group())"
+          }
+        },
+        {
           "id": "op-split",
           "title": "inline: split words",
           "origin": "inline",
-          "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
+          "description": "Streams the reply word by word. app/providers/llm/fake_provider.py:38",
           "show": true,
           "calls": null
         }
@@ -816,9 +861,10 @@
       ],
       "attributes": {
         "is_async": true,
+        "step_note": "calls the first tool when the question contains an id-like token (e.g. NW-1042)",
         "validations_note": "no input checks in code"
       },
-      "step_change": "unchanged"
+      "step_change": "changed"
     },
     {
       "id": "be.get_llm_provider",
@@ -906,10 +952,9 @@
       ],
       "attributes": {
         "is_async": false,
-        "decorators": "@lru_cache",
-        "step_note": "adds the openai and gemini providers with an API-key check"
+        "decorators": "@lru_cache"
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.pyjwt",
@@ -3073,8 +3118,8 @@
         "file": "app/features/feature_chat/services/service_build_prompt.py",
         "symbol": "app.features.feature_chat.services.service_build_prompt.service_build_prompt",
         "lines": [
-          24,
-          32
+          27,
+          35
         ]
       },
       "owner": "feature_chat",
@@ -3100,7 +3145,7 @@
           "id": "op-label",
           "title": "inline: label passages",
           "origin": "inline",
-          "description": "Joins \"[source_file p.page]\\ntext\" blocks, or NO_CONTEXT. app/features/feature_chat/services/service_build_prompt.py:31",
+          "description": "Joins \"[source_file p.page]\\ntext\" blocks, or NO_CONTEXT. app/features/feature_chat/services/service_build_prompt.py:34",
           "show": true,
           "calls": null
         },
@@ -3108,7 +3153,7 @@
           "id": "op-compose",
           "title": "inline: compose prompt",
           "origin": "inline",
-          "description": "SYSTEM_RULES + CONTEXT section. app/features/feature_chat/services/service_build_prompt.py:32",
+          "description": "SYSTEM_RULES + CONTEXT section. app/features/feature_chat/services/service_build_prompt.py:35",
           "show": true,
           "calls": null
         }
@@ -3121,9 +3166,10 @@
         }
       ],
       "attributes": {
-        "is_async": false
+        "is_async": false,
+        "step_note": "adds the rule to call get_shipment_overview for shipment ids and to cite it as (shipment tool)"
       },
-      "step_change": "added"
+      "step_change": "changed"
     },
     {
       "id": "be.OpenAIProvider.stream_chat",
@@ -3131,7 +3177,7 @@
       "kind": "method",
       "side": "backend",
       "layer": "provider",
-      "description": "Streams a Chat Completions answer (system + user message) and yields the content deltas.",
+      "description": "Streams Chat Completions rounds; tool-call fragments are collected, the tools are run concurrently and their results sent back until a round has no tool calls.",
       "flows": [
         "chat-session"
       ],
@@ -3139,8 +3185,8 @@
         "file": "app/providers/llm/openai_provider.py",
         "symbol": "app.providers.llm.openai_provider.OpenAIProvider.stream_chat",
         "lines": [
-          22,
-          38
+          42,
+          88
         ]
       },
       "owner": "providers/llm",
@@ -3160,29 +3206,66 @@
         {
           "id": "in-tools",
           "name": "tools",
-          "description": "list[Callable] | None. Not used in this step."
+          "description": "list[Callable] | None. Described with _tool_schema."
         }
       ],
       "validations": [],
       "operations": [
         {
+          "id": "op-schema",
+          "title": "_tool_schema",
+          "origin": "private",
+          "description": "Describes each tool (name, docstring, string params). app/providers/llm/openai_provider.py:56",
+          "show": true,
+          "calls": null
+        },
+        {
           "id": "op-create",
           "title": "chat.completions.create",
           "origin": "external",
-          "description": "stream=True request with the system and user messages. app/providers/llm/openai_provider.py:30",
+          "description": "One streamed round per loop iteration (at most MAX_TOOL_ROUNDS + 1). app/providers/llm/openai_provider.py:61",
           "show": true,
           "calls": {
             "component": "ext.openai_api",
             "type": "http",
             "label": "POST /v1/chat/completions",
-            "evidence": "app/providers/llm/openai_provider.py:30  stream = await self._client.chat.completions.create("
+            "evidence": "app/providers/llm/openai_provider.py:61  stream = await self._client.chat.completions.create(model=self._model, messages=messages, stream=True, **extra)"
           }
         },
         {
           "id": "op-yield",
           "title": "inline: yield deltas",
           "origin": "inline",
-          "description": "Yields non-empty delta.content pieces. app/providers/llm/openai_provider.py:38",
+          "description": "Yields text deltas as they arrive. app/providers/llm/openai_provider.py:69",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-collect",
+          "title": "inline: collect tool calls",
+          "origin": "inline",
+          "description": "Accumulates id, name and argument fragments per tool-call index. app/providers/llm/openai_provider.py:72",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-run",
+          "title": "_run_tool",
+          "origin": "private",
+          "description": "Runs all requested tools with asyncio.gather; unknown names and bad JSON become error results. app/providers/llm/openai_provider.py:86",
+          "show": true,
+          "calls": {
+            "component": "be.get_shipment_overview",
+            "type": "concurrent",
+            "label": "parallel: requested tools",
+            "evidence": "app/providers/llm/openai_provider.py:86  results = await asyncio.gather(*(self._run_tool(tool_map, c) for c in requested))"
+          }
+        },
+        {
+          "id": "op-results",
+          "title": "inline: tool messages",
+          "origin": "inline",
+          "description": "Appends one {role: tool} message per result for the next round. app/providers/llm/openai_provider.py:88",
           "show": true,
           "calls": null
         }
@@ -3196,9 +3279,10 @@
       ],
       "attributes": {
         "is_async": true,
+        "step_note": "streams every round, collects tool-call fragments, runs the requested tools concurrently and streams the next round",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "changed"
     },
     {
       "id": "be.GeminiProvider.stream_chat",
@@ -3206,7 +3290,7 @@
       "kind": "method",
       "side": "backend",
       "layer": "provider",
-      "description": "Streams a Gemini answer with the system prompt as system_instruction and yields the text parts.",
+      "description": "Streams a Gemini chat answer; the SDK's automatic function calling awaits the given Python tools when the model calls them.",
       "flows": [
         "chat-session"
       ],
@@ -3215,7 +3299,7 @@
         "symbol": "app.providers.llm.gemini_provider.GeminiProvider.stream_chat",
         "lines": [
           23,
-          39
+          41
         ]
       },
       "owner": "providers/llm",
@@ -3235,29 +3319,50 @@
         {
           "id": "in-tools",
           "name": "tools",
-          "description": "list[Callable] | None. Not used in this step."
+          "description": "list[Callable] | None. Passed as GenerateContentConfig.tools."
         }
       ],
       "validations": [],
       "operations": [
         {
-          "id": "op-stream",
-          "title": "aio.models.generate_content_stream",
+          "id": "op-chat",
+          "title": "aio.chats.create",
           "origin": "external",
-          "description": "Streaming request with system_instruction. app/providers/llm/gemini_provider.py:31",
+          "description": "Fresh chat with system_instruction and tools. app/providers/llm/gemini_provider.py:33",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-send",
+          "title": "chat.send_message_stream",
+          "origin": "external",
+          "description": "Streams the answer; tool calls are resolved by the SDK in between. app/providers/llm/gemini_provider.py:37",
           "show": true,
           "calls": {
             "component": "ext.gemini_api",
             "type": "http",
             "label": "POST models/{model}:streamGenerateContent",
-            "evidence": "app/providers/llm/gemini_provider.py:31  stream = await self._client.aio.models.generate_content_stream("
+            "evidence": "app/providers/llm/gemini_provider.py:37  stream = await chat.send_message_stream(user_message)"
+          }
+        },
+        {
+          "id": "op-afc",
+          "title": "automatic function calling",
+          "origin": "external",
+          "description": "The SDK awaits the tool the model selects with the arguments it chose. app/providers/llm/gemini_provider.py:35",
+          "show": true,
+          "calls": {
+            "component": "be.get_shipment_overview",
+            "type": "callback",
+            "label": "SDK calls tool",
+            "evidence": "app/providers/llm/gemini_provider.py:35  config=types.GenerateContentConfig(system_instruction=system_prompt, tools=tools or []),"
           }
         },
         {
           "id": "op-yield",
           "title": "inline: yield text",
           "origin": "inline",
-          "description": "Yields non-empty chunk.text. app/providers/llm/gemini_provider.py:39",
+          "description": "Yields non-empty chunk.text. app/providers/llm/gemini_provider.py:41",
           "show": true,
           "calls": null
         }
@@ -3271,9 +3376,10 @@
       ],
       "attributes": {
         "is_async": true,
+        "step_note": "uses the chat API so the SDK's automatic function calling runs the tools while streaming",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "changed"
     },
     {
       "id": "ext.openai_api",
@@ -3296,7 +3402,7 @@
       "attributes": {
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "ext.gemini_api",
@@ -3311,6 +3417,530 @@
       "source": null,
       "owner": "Google",
       "component_reason": "External LLM boundary.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.tool_bind_shipment_overview",
+      "name": "tool_bind_shipment_overview",
+      "kind": "tool",
+      "side": "backend",
+      "layer": "tool",
+      "description": "Returns get_shipment_overview(shipment_id), a closure over the verified user.",
+      "flows": [
+        "chat-session",
+        "shipment-lookup"
+      ],
+      "source": {
+        "file": "app/features/feature_shipment_tool/tool_bind_shipment_overview.py",
+        "symbol": "app.features.feature_shipment_tool.tool_bind_shipment_overview.tool_bind_shipment_overview",
+        "lines": [
+          14,
+          30
+        ]
+      },
+      "owner": "feature_shipment_tool",
+      "component_reason": "Public entry of the tool-provider feature; the identity boundary between the model and the tool.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-user",
+          "name": "user",
+          "description": "TokenClaims, required. The connection's verified identity."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-closure",
+          "title": "inline: define get_shipment_overview",
+          "origin": "inline",
+          "description": "Defines the one-argument async closure and returns it. app/features/feature_shipment_tool/tool_bind_shipment_overview.py:30",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-tool",
+          "name": "Callable[[str], Awaitable[dict]]",
+          "description": "get_shipment_overview, named and documented for the LLM."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.get_shipment_overview",
+      "name": "get_shipment_overview",
+      "kind": "tool",
+      "side": "backend",
+      "layer": "tool",
+      "description": "The LLM-callable tool: forwards the model's shipment_id together with the bound user.",
+      "flows": [
+        "shipment-lookup"
+      ],
+      "source": {
+        "file": "app/features/feature_shipment_tool/tool_bind_shipment_overview.py",
+        "symbol": "app.features.feature_shipment_tool.tool_bind_shipment_overview.tool_bind_shipment_overview.get_shipment_overview",
+        "lines": [
+          21,
+          28
+        ]
+      },
+      "owner": "feature_shipment_tool",
+      "component_reason": "The function the model actually calls; its name and docstring are the tool description.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-id",
+          "name": "shipment_id",
+          "description": "str, from the model, e.g. \"NW-1042\"."
+        },
+        {
+          "id": "in-user",
+          "name": "user",
+          "description": "TokenClaims, closed over (not a parameter)."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-call",
+          "title": "tool_get_shipment_overview",
+          "origin": "imported",
+          "description": "Delegates with the bound user. app/features/feature_shipment_tool/tool_bind_shipment_overview.py:28",
+          "show": true,
+          "calls": {
+            "component": "be.tool_get_shipment_overview",
+            "type": "await",
+            "label": "overview for bound user",
+            "evidence": "app/features/feature_shipment_tool/tool_bind_shipment_overview.py:28  return await tool_get_shipment_overview(shipment_id, user)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-overview",
+          "name": "dict",
+          "description": "Overview or {error}."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.tool_get_shipment_overview",
+      "name": "tool_get_shipment_overview",
+      "kind": "tool",
+      "side": "backend",
+      "layer": "tool",
+      "description": "Checks visibility, then fetches status, ETA and SLA concurrently and merges them.",
+      "flows": [
+        "shipment-lookup"
+      ],
+      "source": {
+        "file": "app/features/feature_shipment_tool/tool_get_shipment_overview.py",
+        "symbol": "app.features.feature_shipment_tool.tool_get_shipment_overview.tool_get_shipment_overview",
+        "lines": [
+          20,
+          39
+        ]
+      },
+      "owner": "feature_shipment_tool",
+      "component_reason": "Orchestrates the tool: access check first, then the parallel calls.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-id",
+          "name": "shipment_id",
+          "description": "str."
+        },
+        {
+          "id": "in-user",
+          "name": "user",
+          "description": "TokenClaims."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-id",
+          "rules": [
+            "must be visible to user (service_find_visible_shipment), else {\"error\": NOT_VISIBLE} and no data call"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-visible",
+          "title": "service_find_visible_shipment",
+          "origin": "imported",
+          "description": "Returns the shipment or None (missing or forbidden). app/features/feature_shipment_tool/tool_get_shipment_overview.py:27",
+          "show": true,
+          "calls": {
+            "component": "be.service_find_visible_shipment",
+            "type": "await",
+            "label": "visibility check",
+            "evidence": "app/features/feature_shipment_tool/tool_get_shipment_overview.py:27  shipment = await service_find_visible_shipment(shipment_id, user)"
+          }
+        },
+        {
+          "id": "op-status",
+          "title": "service_get_shipment_status",
+          "origin": "imported",
+          "description": "Telematics status, ~1 s. app/features/feature_shipment_tool/tool_get_shipment_overview.py:34",
+          "show": true,
+          "calls": {
+            "component": "be.service_get_shipment_status",
+            "type": "concurrent",
+            "label": "parallel: overview",
+            "evidence": "app/features/feature_shipment_tool/tool_get_shipment_overview.py:34  service_get_shipment_status(sid),"
+          }
+        },
+        {
+          "id": "op-eta",
+          "title": "service_get_route_eta",
+          "origin": "imported",
+          "description": "ETA and delay flag, ~1 s. app/features/feature_shipment_tool/tool_get_shipment_overview.py:35",
+          "show": true,
+          "calls": {
+            "component": "be.service_get_route_eta",
+            "type": "concurrent",
+            "label": "parallel: overview",
+            "evidence": "app/features/feature_shipment_tool/tool_get_shipment_overview.py:35  service_get_route_eta(sid),"
+          }
+        },
+        {
+          "id": "op-sla",
+          "title": "service_get_customer_sla",
+          "origin": "imported",
+          "description": "Contracted tier and credit, ~1 s. app/features/feature_shipment_tool/tool_get_shipment_overview.py:36",
+          "show": true,
+          "calls": {
+            "component": "be.service_get_customer_sla",
+            "type": "concurrent",
+            "label": "parallel: overview",
+            "evidence": "app/features/feature_shipment_tool/tool_get_shipment_overview.py:36  service_get_customer_sla(sid),"
+          }
+        },
+        {
+          "id": "op-merge",
+          "title": "inline: merge",
+          "origin": "inline",
+          "description": "shipment_id, customer, route, status, eta, sla. app/features/feature_shipment_tool/tool_get_shipment_overview.py:39",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-overview",
+          "name": "dict",
+          "description": "{shipment_id, customer, route, status, eta, sla}."
+        },
+        {
+          "id": "out-error",
+          "name": "error result",
+          "description": "{\"error\": \"shipment not found or not visible to this user\"}."
+        }
+      ],
+      "attributes": {
+        "is_async": true
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_find_visible_shipment",
+      "name": "service_find_visible_shipment",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Looks a shipment up only if visible: dispatcher/safety/leadership all, drivers their trips, sales their accounts.",
+      "flows": [
+        "shipment-lookup"
+      ],
+      "source": {
+        "file": "app/features/feature_shipment_tool/services/service_find_visible_shipment.py",
+        "symbol": "app.features.feature_shipment_tool.services.service_find_visible_shipment.service_find_visible_shipment",
+        "lines": [
+          15,
+          34
+        ]
+      },
+      "owner": "feature_shipment_tool",
+      "component_reason": "The shipment access rule, applied in the lookup itself.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-id",
+          "name": "shipment_id",
+          "description": "str. Normalised with strip().upper()."
+        },
+        {
+          "id": "in-user",
+          "name": "user",
+          "description": "TokenClaims. role and sub."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-user",
+          "rules": [
+            "driver: shipment.driver_id == user.sub",
+            "sales: shipment.account_owner_id == user.sub",
+            "dispatcher, safety, leadership: always",
+            "otherwise None"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-lookup",
+          "title": "SHIPMENTS.get",
+          "origin": "imported",
+          "description": "Looks the id up in the mock register. app/features/feature_shipment_tool/services/service_find_visible_shipment.py:24",
+          "show": true,
+          "calls": {
+            "component": "ext.operations_apis",
+            "type": "await",
+            "label": "planner lookup (mock)",
+            "evidence": "app/features/feature_shipment_tool/services/service_find_visible_shipment.py:24  shipment = SHIPMENTS.get(shipment_id.strip().upper())"
+          }
+        },
+        {
+          "id": "op-rule",
+          "title": "inline: visibility rule",
+          "origin": "inline",
+          "description": "Applies the role rule; same None for missing and forbidden. app/features/feature_shipment_tool/services/service_find_visible_shipment.py:27",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-shipment",
+          "name": "dict | None",
+          "description": "The shipment record or None."
+        }
+      ],
+      "attributes": {
+        "is_async": true
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_get_shipment_status",
+      "name": "service_get_shipment_status",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Mock telematics API: status and last position after ~1 s.",
+      "flows": [
+        "shipment-lookup"
+      ],
+      "source": {
+        "file": "app/features/feature_shipment_tool/services/service_get_shipment_status.py",
+        "symbol": "app.features.feature_shipment_tool.services.service_get_shipment_status.service_get_shipment_status",
+        "lines": [
+          13,
+          18
+        ]
+      },
+      "owner": "feature_shipment_tool",
+      "component_reason": "One of the three independent operational calls.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-id",
+          "name": "shipment_id",
+          "description": "str. Already checked for visibility."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-call",
+          "title": "asyncio.sleep + TRACKING_DATA",
+          "origin": "external",
+          "description": "Simulated latency, then the mock record. app/features/feature_shipment_tool/services/service_get_shipment_status.py:16",
+          "show": true,
+          "calls": {
+            "component": "ext.operations_apis",
+            "type": "await",
+            "label": "telematics API (mock)",
+            "evidence": "app/features/feature_shipment_tool/services/service_get_shipment_status.py:16  await asyncio.sleep(MOCK_LATENCY_SECONDS)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-status",
+          "name": "dict",
+          "description": "{status, last_position}."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_get_route_eta",
+      "name": "service_get_route_eta",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Mock route planner: ETA, minutes late and the playbook's amber/red flag after ~1 s.",
+      "flows": [
+        "shipment-lookup"
+      ],
+      "source": {
+        "file": "app/features/feature_shipment_tool/services/service_get_route_eta.py",
+        "symbol": "app.features.feature_shipment_tool.services.service_get_route_eta.service_get_route_eta",
+        "lines": [
+          20,
+          31
+        ]
+      },
+      "owner": "feature_shipment_tool",
+      "component_reason": "One of the three independent operational calls.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-id",
+          "name": "shipment_id",
+          "description": "str. Already checked for visibility."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-call",
+          "title": "asyncio.sleep + TRACKING_DATA",
+          "origin": "external",
+          "description": "Simulated latency, then the mock record. app/features/feature_shipment_tool/services/service_get_route_eta.py:26",
+          "show": true,
+          "calls": {
+            "component": "ext.operations_apis",
+            "type": "await",
+            "label": "route planner API (mock)",
+            "evidence": "app/features/feature_shipment_tool/services/service_get_route_eta.py:26  await asyncio.sleep(MOCK_LATENCY_SECONDS)"
+          }
+        },
+        {
+          "id": "op-late",
+          "title": "_minutes",
+          "origin": "private",
+          "description": "minutes_late = max(0, eta - window_end). app/features/feature_shipment_tool/services/service_get_route_eta.py:29",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-flag",
+          "title": "inline: flag",
+          "origin": "inline",
+          "description": "red > 90, amber > 30, else on_time. app/features/feature_shipment_tool/services/service_get_route_eta.py:30",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-eta",
+          "name": "dict",
+          "description": "{eta, window_end, minutes_late, flag}."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_get_customer_sla",
+      "name": "service_get_customer_sla",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Mock contracts API: tier, window length and credit percent after ~1 s.",
+      "flows": [
+        "shipment-lookup"
+      ],
+      "source": {
+        "file": "app/features/feature_shipment_tool/services/service_get_customer_sla.py",
+        "symbol": "app.features.feature_shipment_tool.services.service_get_customer_sla.service_get_customer_sla",
+        "lines": [
+          13,
+          18
+        ]
+      },
+      "owner": "feature_shipment_tool",
+      "component_reason": "One of the three independent operational calls.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-id",
+          "name": "shipment_id",
+          "description": "str. Already checked for visibility."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-call",
+          "title": "asyncio.sleep + SLA_TIERS",
+          "origin": "external",
+          "description": "Simulated latency, then tier terms from the SLA guide. app/features/feature_shipment_tool/services/service_get_customer_sla.py:15",
+          "show": true,
+          "calls": {
+            "component": "ext.operations_apis",
+            "type": "await",
+            "label": "contracts API (mock)",
+            "evidence": "app/features/feature_shipment_tool/services/service_get_customer_sla.py:15  await asyncio.sleep(MOCK_LATENCY_SECONDS)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-sla",
+          "name": "dict",
+          "description": "{tier, window_hours, credit_percent_if_missed}."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.operations_apis",
+      "name": "Operational APIs (mock)",
+      "kind": "external",
+      "side": "external",
+      "layer": "data",
+      "description": "Planner register, telematics, route planner and contracts, mocked by configs/shipments.py and configs/tracking_data.py with 1 s latency.",
+      "flows": [
+        "shipment-lookup"
+      ],
+      "source": null,
+      "owner": "feature_shipment_tool/configs",
+      "component_reason": "Data boundary of the shipment tool.",
       "status": "observed",
       "inputs": [],
       "validations": [],

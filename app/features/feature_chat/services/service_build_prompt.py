@@ -3,7 +3,7 @@
 # CRD component: be.service_build_prompt
 # Called by: feature_chat/handlers/handle_chat_socket.py
 # Calls: nothing
-# Step: added in step 4 (Stream answers)
+# Step: added in step 4 (Stream answers); changed in step 5: rules for the shipment tool
 
 from app.providers.vectorstore.retrieved_chunk import RetrievedChunk  # the allowed passages from step 3
 
@@ -14,6 +14,9 @@ Answer the user's question using ONLY the passages in CONTEXT.
 - Cite every fact with its source in parentheses, exactly as labelled, e.g. (driver_safety_manual.pdf p.1).
 - If CONTEXT does not contain the answer, say that you cannot find it in the documents available to this user.
   Do not guess, and do not speculate about other documents that might exist.
+- For a question about a specific shipment (ids look like NW-1042), call the get_shipment_overview tool
+  with that id and answer from its result, citing it as (shipment tool). If the tool returns an error,
+  say the shipment cannot be found or shared with this user; never guess its status.
 - For greetings or small talk, reply briefly without citing anything.
 - Keep answers short: a few sentences or a short list."""
 
