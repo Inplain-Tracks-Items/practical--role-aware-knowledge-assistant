@@ -2,7 +2,7 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T09:56:18Z",
+  "generated_at": "2026-10-09T10:11:15Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
     "revision": "step-03-access-aware-retrieval",
@@ -84,7 +84,12 @@
           "origin": "imported",
           "description": "Loads the cached Settings. app/features/feature_auth/cli.py:16",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "calls get_settings",
+            "evidence": "app/features/feature_auth/cli.py:16  for entry in handle_mint_demo_tokens(get_settings()):"
+          }
         },
         {
           "id": "op-mint",
@@ -379,6 +384,32 @@
             "label": "delegates",
             "evidence": "app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)"
           }
+        },
+        {
+          "id": "op-use-depends",
+          "title": "Depends",
+          "origin": "external",
+          "description": "Calls Depends (fastapi). app/features/feature_chat/router.py:21",
+          "show": true,
+          "calls": {
+            "component": "ext.fastapi",
+            "type": "call",
+            "label": "calls Depends",
+            "evidence": "app/features/feature_chat/router.py:21  settings=Depends(get_settings),"
+          }
+        },
+        {
+          "id": "op-use-get-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Calls get_settings (app.core.config). app/features/feature_chat/router.py:21",
+          "show": true,
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "injected via Depends(get_settings)",
+            "evidence": "app/features/feature_chat/router.py:21  settings=Depends(get_settings),"
+          }
         }
       ],
       "outputs": [
@@ -567,6 +598,110 @@
           "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:100",
           "show": true,
           "calls": null
+        },
+        {
+          "id": "op-use-clientmessage",
+          "title": "ClientMessage",
+          "origin": "imported",
+          "description": "Calls ClientMessage (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:50",
+          "show": true,
+          "calls": {
+            "component": "be.ClientMessage",
+            "type": "call",
+            "label": "calls ClientMessage",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:50  first = ClientMessage(**await websocket.receive_json())"
+          }
+        },
+        {
+          "id": "op-use-authfailedevent",
+          "title": "AuthFailedEvent",
+          "origin": "imported",
+          "description": "Calls AuthFailedEvent (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:56",
+          "show": true,
+          "calls": {
+            "component": "be.AuthFailedEvent",
+            "type": "call",
+            "label": "calls AuthFailedEvent",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:56  await websocket.send_json(AuthFailedEvent(message=\"first message must be an auth message\").model_dump())"
+          }
+        },
+        {
+          "id": "op-use-authsuccessevent",
+          "title": "AuthSuccessEvent",
+          "origin": "imported",
+          "description": "Calls AuthSuccessEvent (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:73",
+          "show": true,
+          "calls": {
+            "component": "be.AuthSuccessEvent",
+            "type": "call",
+            "label": "calls AuthSuccessEvent",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:73  AuthSuccessEvent(user_id=user.sub, name=user.name, role=user.role, clearance=user.clearance).model_dump()"
+          }
+        },
+        {
+          "id": "op-use-errorevent",
+          "title": "ErrorEvent",
+          "origin": "imported",
+          "description": "Calls ErrorEvent (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:86",
+          "show": true,
+          "calls": {
+            "component": "be.ErrorEvent",
+            "type": "call",
+            "label": "calls ErrorEvent",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:86  await websocket.send_json(ErrorEvent(message=\"invalid message\").model_dump())"
+          }
+        },
+        {
+          "id": "op-use-sourcesevent",
+          "title": "SourcesEvent",
+          "origin": "imported",
+          "description": "Calls SourcesEvent (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:96",
+          "show": true,
+          "calls": {
+            "component": "be.SourcesEvent",
+            "type": "call",
+            "label": "calls SourcesEvent",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:96  await websocket.send_json(SourcesEvent(sources=[SourceRef(source_file=f, page=p) for f, p in pages]).model_dump())"
+          }
+        },
+        {
+          "id": "op-use-sourceref",
+          "title": "SourceRef",
+          "origin": "imported",
+          "description": "Calls SourceRef (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:96",
+          "show": true,
+          "calls": {
+            "component": "be.SourceRef",
+            "type": "call",
+            "label": "calls SourceRef",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:96  await websocket.send_json(SourcesEvent(sources=[SourceRef(source_file=f, page=p) for f, p in pages]).model_dump())"
+          }
+        },
+        {
+          "id": "op-use-streamevent",
+          "title": "StreamEvent",
+          "origin": "imported",
+          "description": "Calls StreamEvent (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:99",
+          "show": true,
+          "calls": {
+            "component": "be.StreamEvent",
+            "type": "call",
+            "label": "calls StreamEvent",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:99  await websocket.send_json(StreamEvent(text=piece).model_dump())"
+          }
+        },
+        {
+          "id": "op-use-doneevent",
+          "title": "DoneEvent",
+          "origin": "imported",
+          "description": "Calls DoneEvent (app.features.feature_chat.schemas.chat_schemas). app/features/feature_chat/handlers/handle_chat_socket.py:100",
+          "show": true,
+          "calls": {
+            "component": "be.DoneEvent",
+            "type": "call",
+            "label": "calls DoneEvent",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:100  await websocket.send_json(DoneEvent().model_dump())"
+          }
         }
       ],
       "outputs": [
@@ -670,7 +805,25 @@
           "origin": "imported",
           "description": "Validates the payload into TokenClaims. app/core/verify_jwt.py:38",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.TokenClaims",
+            "type": "call",
+            "label": "calls TokenClaims",
+            "evidence": "app/core/verify_jwt.py:38  return TokenClaims(**payload)"
+          }
+        },
+        {
+          "id": "op-use-autherror",
+          "title": "AuthError",
+          "origin": "imported",
+          "description": "Calls AuthError (app.core.auth_error). app/core/verify_jwt.py:30",
+          "show": true,
+          "calls": {
+            "component": "be.AuthError",
+            "type": "call",
+            "label": "calls AuthError",
+            "evidence": "app/core/verify_jwt.py:30  raise AuthError(\"token expired\")"
+          }
         }
       ],
       "outputs": [
@@ -858,7 +1011,12 @@
           "origin": "imported",
           "description": "Reads the provider name. app/core/dependencies.py:30",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "calls get_settings",
+            "evidence": "app/core/dependencies.py:30  settings = get_settings()"
+          }
         },
         {
           "id": "op-fake",
@@ -866,7 +1024,12 @@
           "origin": "imported",
           "description": "if llm_provider == \"fake\": builds the FakeProvider. app/core/dependencies.py:33",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.FakeProvider",
+            "type": "call",
+            "label": "calls FakeProvider",
+            "evidence": "app/core/dependencies.py:33  return FakeProvider()"
+          }
         }
       ],
       "outputs": [
@@ -947,7 +1110,12 @@
           "origin": "imported",
           "description": "Reads the folder settings. app/features/feature_sample_docs/cli.py:18",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "calls get_settings",
+            "evidence": "app/features/feature_sample_docs/cli.py:18  settings = get_settings()"
+          }
         },
         {
           "id": "op-build",
@@ -1368,7 +1536,12 @@
           "origin": "imported",
           "description": "Reads folder and chunking settings. app/features/feature_ingest/cli.py:19",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "calls get_settings",
+            "evidence": "app/features/feature_ingest/cli.py:19  settings = get_settings()"
+          }
         },
         {
           "id": "op-embedder",
@@ -1526,7 +1699,12 @@
           "origin": "imported",
           "description": "Looks up audience and clearance; None -> skipped. app/features/feature_ingest/handlers/handle_ingest_documents.py:46",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.ACCESS_MAP",
+            "type": "call",
+            "label": "calls ACCESS_MAP",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:46  access = ACCESS_MAP.get(pdf.name)"
+          }
         },
         {
           "id": "op-extract",
@@ -1604,6 +1782,19 @@
             "type": "await",
             "label": "store chunks",
             "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:68  stored = await service_store_chunks(records, embeddings, store)"
+          }
+        },
+        {
+          "id": "op-use-chunkrecord",
+          "title": "ChunkRecord",
+          "origin": "imported",
+          "description": "Calls ChunkRecord (app.features.feature_ingest.schemas.ingest_schemas). app/features/feature_ingest/handlers/handle_ingest_documents.py:59",
+          "show": true,
+          "calls": {
+            "component": "be.ChunkRecord",
+            "type": "call",
+            "label": "calls ChunkRecord",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:59  records.append(ChunkRecord("
           }
         }
       ],
@@ -2427,7 +2618,12 @@
           "origin": "imported",
           "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:47",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.HashingProvider",
+            "type": "call",
+            "label": "calls HashingProvider",
+            "evidence": "app/core/dependencies.py:47  return HashingProvider()"
+          }
         },
         {
           "id": "op-st",
@@ -2435,7 +2631,25 @@
           "origin": "imported",
           "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:49",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.SentenceTransformersProvider",
+            "type": "call",
+            "label": "calls SentenceTransformersProvider",
+            "evidence": "app/core/dependencies.py:49  return SentenceTransformersProvider(settings.embedding_model)"
+          }
+        },
+        {
+          "id": "op-use-get-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Calls get_settings (app.core.config). app/core/dependencies.py:44",
+          "show": true,
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "calls get_settings",
+            "evidence": "app/core/dependencies.py:44  settings = get_settings()"
+          }
         }
       ],
       "outputs": [
@@ -2493,7 +2707,25 @@
           "origin": "imported",
           "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:57",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.ChromaStore",
+            "type": "call",
+            "label": "calls ChromaStore",
+            "evidence": "app/core/dependencies.py:57  return ChromaStore(path=settings.chroma_path, collection_name=settings.chroma_collection)"
+          }
+        },
+        {
+          "id": "op-use-get-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Calls get_settings (app.core.config). app/core/dependencies.py:56",
+          "show": true,
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "calls get_settings",
+            "evidence": "app/core/dependencies.py:56  settings = get_settings()"
+          }
         }
       ],
       "outputs": [
@@ -2546,7 +2778,25 @@
           "origin": "imported",
           "description": "Splits the language list and builds the reader. app/core/dependencies.py:65",
           "show": true,
-          "calls": null
+          "calls": {
+            "component": "be.EasyOcrProvider",
+            "type": "call",
+            "label": "calls EasyOcrProvider",
+            "evidence": "app/core/dependencies.py:65  return EasyOcrProvider([code.strip() for code in settings.ocr_languages.split(\",\")])"
+          }
+        },
+        {
+          "id": "op-use-get-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Calls get_settings (app.core.config). app/core/dependencies.py:63",
+          "show": true,
+          "calls": {
+            "component": "be.get_settings",
+            "type": "call",
+            "label": "calls get_settings",
+            "evidence": "app/core/dependencies.py:63  settings = get_settings()"
+          }
         }
       ],
       "outputs": [
@@ -3034,8 +3284,1971 @@
         "validations_note": "no input checks in code"
       },
       "step_change": "added"
+    },
+    {
+      "id": "be.get_settings",
+      "name": "get_settings",
+      "kind": "function",
+      "side": "backend",
+      "layer": "config",
+      "description": "Return the process-wide Settings, built on the first call and reused afterwards.",
+      "flows": [
+        "mint-tokens",
+        "chat-session",
+        "build-sample-docs",
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/core/config.py",
+        "symbol": "app.core.config.get_settings",
+        "lines": [
+          55,
+          58
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Imported by main (app/features/feature_auth/cli.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-return",
+          "name": "return",
+          "description": "Settings"
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.Settings",
+      "name": "Settings",
+      "kind": "class",
+      "side": "backend",
+      "layer": "config",
+      "description": "All configuration of the backend.",
+      "flows": [
+        "mint-tokens",
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/core/config.py",
+        "symbol": "app.core.config.Settings",
+        "lines": [
+          12,
+          52
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Imported by handle_mint_demo_tokens (app/features/feature_auth/handlers/handle_mint_demo_tokens.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-jwt_secret",
+          "name": "jwt_secret",
+          "description": "str"
+        },
+        {
+          "id": "in-jwt_algorithm",
+          "name": "jwt_algorithm",
+          "description": "str"
+        },
+        {
+          "id": "in-jwt_ttl_minutes",
+          "name": "jwt_ttl_minutes",
+          "description": "int"
+        },
+        {
+          "id": "in-llm_provider",
+          "name": "llm_provider",
+          "description": "str"
+        },
+        {
+          "id": "in-docs_src_dir",
+          "name": "docs_src_dir",
+          "description": "str"
+        },
+        {
+          "id": "in-docs_dir",
+          "name": "docs_dir",
+          "description": "str"
+        },
+        {
+          "id": "in-embedding_provider",
+          "name": "embedding_provider",
+          "description": "str"
+        },
+        {
+          "id": "in-embedding_model",
+          "name": "embedding_model",
+          "description": "str"
+        },
+        {
+          "id": "in-chroma_path",
+          "name": "chroma_path",
+          "description": "str"
+        },
+        {
+          "id": "in-chroma_collection",
+          "name": "chroma_collection",
+          "description": "str"
+        },
+        {
+          "id": "in-chunk_size_words",
+          "name": "chunk_size_words",
+          "description": "int"
+        },
+        {
+          "id": "in-chunk_overlap_words",
+          "name": "chunk_overlap_words",
+          "description": "int"
+        },
+        {
+          "id": "in-ocr_languages",
+          "name": "ocr_languages",
+          "description": "str"
+        },
+        {
+          "id": "in-retrieval_top_k",
+          "name": "retrieval_top_k",
+          "description": "int"
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-use-settingsconfigdict",
+          "title": "SettingsConfigDict",
+          "origin": "external",
+          "description": "Calls SettingsConfigDict (pydantic_settings). app/core/config.py:21",
+          "show": true,
+          "calls": {
+            "component": "ext.pydantic_settings",
+            "type": "call",
+            "label": "calls SettingsConfigDict",
+            "evidence": "app/core/config.py:21  model_config = SettingsConfigDict(env_file=\".env\", extra=\"ignore\")"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "Settings",
+          "description": "Instance of Settings."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan",
+        "step_note": "uses new imports or its contract changed (import scan)"
+      },
+      "step_change": "changed"
+    },
+    {
+      "id": "be.DEMO_USERS",
+      "name": "DEMO_USERS",
+      "kind": "constant",
+      "side": "backend",
+      "layer": "config",
+      "description": "The five Northwind demo users, one per role, used to mint test tokens.",
+      "flows": [
+        "mint-tokens"
+      ],
+      "source": {
+        "file": "app/features/feature_auth/configs/demo_users.py",
+        "symbol": "app.features.feature_auth.configs.demo_users.DEMO_USERS",
+        "lines": [
+          12,
+          18
+        ]
+      },
+      "owner": "feature_auth",
+      "component_reason": "Imported by handle_mint_demo_tokens (app/features/feature_auth/handlers/handle_mint_demo_tokens.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-use-tokenclaims",
+          "title": "TokenClaims",
+          "origin": "imported",
+          "description": "Calls TokenClaims (app.core.token_claims). app/features/feature_auth/configs/demo_users.py:13",
+          "show": true,
+          "calls": {
+            "component": "be.TokenClaims",
+            "type": "call",
+            "label": "calls TokenClaims",
+            "evidence": "app/features/feature_auth/configs/demo_users.py:13  TokenClaims(sub=\"drv-101\", email=\"dana.driver@northwind.example\", name=\"Dana Okafor\", role=\"driver\", clearance=\"internal\"),"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-value",
+          "name": "DEMO_USERS",
+          "description": "list[TokenClaims]"
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.TokenClaims",
+      "name": "TokenClaims",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Claims carried by every Northwind JWT.",
+      "flows": [
+        "mint-tokens",
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/core/token_claims.py",
+        "symbol": "app.core.token_claims.TokenClaims",
+        "lines": [
+          13,
+          28
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Imported by service_mint_token (app/features/feature_auth/services/service_mint_token.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-sub",
+          "name": "sub",
+          "description": "str"
+        },
+        {
+          "id": "in-email",
+          "name": "email",
+          "description": "str"
+        },
+        {
+          "id": "in-name",
+          "name": "name",
+          "description": "str"
+        },
+        {
+          "id": "in-role",
+          "name": "role",
+          "description": "Role"
+        },
+        {
+          "id": "in-clearance",
+          "name": "clearance",
+          "description": "Clearance"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "TokenClaims",
+          "description": "Instance of TokenClaims."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "ext.fastapi",
+      "name": "FastAPI",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "Web framework: routing, WebSocket handling and dependency injection (Depends).",
+      "flows": [
+        "chat-session"
+      ],
+      "source": null,
+      "owner": "third-party",
+      "component_reason": "Third-party library imported by project code (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.LLMProvider",
+      "name": "LLMProvider",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Anything that can stream a chat answer token by token.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/llm/base.py",
+        "symbol": "app.providers.llm.base.LLMProvider",
+        "lines": [
+          10,
+          30
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "LLMProvider",
+          "description": "Instance of LLMProvider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.EmbeddingProvider",
+      "name": "EmbeddingProvider",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Turns text into vectors whose distance reflects meaning.",
+      "flows": [
+        "chat-session",
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/embeddings/base.py",
+        "symbol": "app.providers.embeddings.base.EmbeddingProvider",
+        "lines": [
+          10,
+          23
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "EmbeddingProvider",
+          "description": "Instance of EmbeddingProvider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.VectorStore",
+      "name": "VectorStore",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Stores text chunks with their vectors and metadata.",
+      "flows": [
+        "chat-session",
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/vectorstore/base.py",
+        "symbol": "app.providers.vectorstore.base.VectorStore",
+        "lines": [
+          12,
+          29
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "VectorStore",
+          "description": "Instance of VectorStore."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.ClientMessage",
+      "name": "ClientMessage",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Anything the client sends.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.ClientMessage",
+        "lines": [
+          12,
+          21
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-type",
+          "name": "type",
+          "description": "Literal[\"auth\", \"message\"]"
+        },
+        {
+          "id": "in-token",
+          "name": "token",
+          "description": "str | None"
+        },
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str | None"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "ClientMessage",
+          "description": "Instance of ClientMessage."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.AuthFailedEvent",
+      "name": "AuthFailedEvent",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Server -> client when the handshake fails; the server closes the socket right after.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.AuthFailedEvent",
+        "lines": [
+          34,
+          38
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-type",
+          "name": "type",
+          "description": "Literal[\"auth_failed\"]"
+        },
+        {
+          "id": "in-message",
+          "name": "message",
+          "description": "str"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "AuthFailedEvent",
+          "description": "Instance of AuthFailedEvent."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.AuthError",
+      "name": "AuthError",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Raised for an expired, badly signed, malformed or incomplete token.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/core/auth_error.py",
+        "symbol": "app.core.auth_error.AuthError",
+        "lines": [
+          8,
+          12
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "AuthError",
+          "description": "Instance of AuthError."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.AuthSuccessEvent",
+      "name": "AuthSuccessEvent",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Server -> client after a valid token: who the server thinks you are.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.AuthSuccessEvent",
+        "lines": [
+          24,
+          31
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-type",
+          "name": "type",
+          "description": "Literal[\"auth_success\"]"
+        },
+        {
+          "id": "in-user_id",
+          "name": "user_id",
+          "description": "str"
+        },
+        {
+          "id": "in-name",
+          "name": "name",
+          "description": "str"
+        },
+        {
+          "id": "in-role",
+          "name": "role",
+          "description": "str"
+        },
+        {
+          "id": "in-clearance",
+          "name": "clearance",
+          "description": "str"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "AuthSuccessEvent",
+          "description": "Instance of AuthSuccessEvent."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.ErrorEvent",
+      "name": "ErrorEvent",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Server -> client: this message could not be handled; the connection stays open.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.ErrorEvent",
+        "lines": [
+          71,
+          75
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-type",
+          "name": "type",
+          "description": "Literal[\"error\"]"
+        },
+        {
+          "id": "in-message",
+          "name": "message",
+          "description": "str"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "ErrorEvent",
+          "description": "Instance of ErrorEvent."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.SourcesEvent",
+      "name": "SourcesEvent",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Server -> client before the answer: the pages retrieved for this user and question.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.SourcesEvent",
+        "lines": [
+          48,
+          55
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-type",
+          "name": "type",
+          "description": "Literal[\"sources\"]"
+        },
+        {
+          "id": "in-sources",
+          "name": "sources",
+          "description": "list[SourceRef]"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "SourcesEvent",
+          "description": "Instance of SourcesEvent."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.SourceRef",
+      "name": "SourceRef",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "One document page the answer may draw on: the citation shown to the user.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.SourceRef",
+        "lines": [
+          41,
+          45
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-source_file",
+          "name": "source_file",
+          "description": "str"
+        },
+        {
+          "id": "in-page",
+          "name": "page",
+          "description": "int"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "SourceRef",
+          "description": "Instance of SourceRef."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.StreamEvent",
+      "name": "StreamEvent",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Server -> client: one piece of the answer, in order.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.StreamEvent",
+        "lines": [
+          58,
+          62
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-type",
+          "name": "type",
+          "description": "Literal[\"stream\"]"
+        },
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "StreamEvent",
+          "description": "Instance of StreamEvent."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.DoneEvent",
+      "name": "DoneEvent",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Server -> client: the answer to the last question is complete.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/schemas/chat_schemas.py",
+        "symbol": "app.features.feature_chat.schemas.chat_schemas.DoneEvent",
+        "lines": [
+          65,
+          68
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Imported by handle_chat_socket (app/features/feature_chat/handlers/handle_chat_socket.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-type",
+          "name": "type",
+          "description": "Literal[\"done\"]"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "DoneEvent",
+          "description": "Instance of DoneEvent."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "ext.pydantic",
+      "name": "Pydantic",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "Data validation library: BaseModel, Field, ValidationError.",
+      "flows": [
+        "chat-session",
+        "mint-tokens",
+        "ingest-documents"
+      ],
+      "source": null,
+      "owner": "third-party",
+      "component_reason": "Third-party library imported by project code (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.FakeProvider",
+      "name": "FakeProvider",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Deterministic stand-in for a real model: same interface, predictable output.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/llm/fake_provider.py",
+        "symbol": "app.providers.llm.fake_provider.FakeProvider",
+        "lines": [
+          11,
+          27
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by get_llm_provider (app/core/dependencies.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "FakeProvider",
+          "description": "Instance of FakeProvider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.SAMPLE_DOCS",
+      "name": "SAMPLE_DOCS",
+      "kind": "constant",
+      "side": "backend",
+      "layer": "config",
+      "description": "Which Northwind PDFs to build from which Markdown source, and which one is rendered as a scanned (image-only) PDF.",
+      "flows": [
+        "build-sample-docs"
+      ],
+      "source": {
+        "file": "app/features/feature_sample_docs/configs/sample_docs.py",
+        "symbol": "app.features.feature_sample_docs.configs.sample_docs.SAMPLE_DOCS",
+        "lines": [
+          9,
+          16
+        ]
+      },
+      "owner": "feature_sample_docs",
+      "component_reason": "Imported by handle_build_sample_docs (app/features/feature_sample_docs/handlers/handle_build_sample_docs.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-value",
+          "name": "SAMPLE_DOCS",
+          "description": "list[dict]"
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.OcrProvider",
+      "name": "OcrProvider",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Reads printed text from an image.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/ocr/base.py",
+        "symbol": "app.providers.ocr.base.OcrProvider",
+        "lines": [
+          10,
+          15
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by handle_ingest_documents (app/features/feature_ingest/handlers/handle_ingest_documents.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "OcrProvider",
+          "description": "Instance of OcrProvider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.ACCESS_MAP",
+      "name": "ACCESS_MAP",
+      "kind": "constant",
+      "side": "backend",
+      "layer": "config",
+      "description": "Who may read which Northwind document: the single source of truth for document access.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/configs/access_map.py",
+        "symbol": "app.features.feature_ingest.configs.access_map.ACCESS_MAP",
+        "lines": [
+          11,
+          24
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Imported by handle_ingest_documents (app/features/feature_ingest/handlers/handle_ingest_documents.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-use-documentaccess",
+          "title": "DocumentAccess",
+          "origin": "imported",
+          "description": "Calls DocumentAccess (app.features.feature_ingest.schemas.ingest_schemas). app/features/feature_ingest/configs/access_map.py:13",
+          "show": true,
+          "calls": {
+            "component": "be.DocumentAccess",
+            "type": "call",
+            "label": "calls DocumentAccess",
+            "evidence": "app/features/feature_ingest/configs/access_map.py:13  \"employee_handbook.pdf\": DocumentAccess(audience=[\"driver\", \"dispatcher\", \"safety\", \"sales\", \"leadership\"], clearance=\"public\"),"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-value",
+          "name": "ACCESS_MAP",
+          "description": "dict[str, DocumentAccess]"
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.ChunkRecord",
+      "name": "ChunkRecord",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "One chunk ready for the vector store.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/schemas/ingest_schemas.py",
+        "symbol": "app.features.feature_ingest.schemas.ingest_schemas.ChunkRecord",
+        "lines": [
+          39,
+          48
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Imported by handle_ingest_documents (app/features/feature_ingest/handlers/handle_ingest_documents.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-id",
+          "name": "id",
+          "description": "str"
+        },
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str"
+        },
+        {
+          "id": "in-metadata",
+          "name": "metadata",
+          "description": "dict[str, Any]"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "ChunkRecord",
+          "description": "Instance of ChunkRecord."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.PageText",
+      "name": "PageText",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "The text of one PDF page.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/schemas/ingest_schemas.py",
+        "symbol": "app.features.feature_ingest.schemas.ingest_schemas.PageText",
+        "lines": [
+          26,
+          36
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Imported by service_extract_pages (app/features/feature_ingest/services/service_extract_pages.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-source_file",
+          "name": "source_file",
+          "description": "str"
+        },
+        {
+          "id": "in-page",
+          "name": "page",
+          "description": "int"
+        },
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str"
+        },
+        {
+          "id": "in-needs_ocr",
+          "name": "needs_ocr",
+          "description": "bool"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "PageText",
+          "description": "Instance of PageText."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.DocumentAccess",
+      "name": "DocumentAccess",
+      "kind": "class",
+      "side": "backend",
+      "layer": "schema",
+      "description": "Who may read one document.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/schemas/ingest_schemas.py",
+        "symbol": "app.features.feature_ingest.schemas.ingest_schemas.DocumentAccess",
+        "lines": [
+          15,
+          23
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Imported by util_build_chunk_metadata (app/features/feature_ingest/utils/util_build_chunk_metadata.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-audience",
+          "name": "audience",
+          "description": "list[Role]"
+        },
+        {
+          "id": "in-clearance",
+          "name": "clearance",
+          "description": "Clearance"
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-use-field",
+          "title": "Field",
+          "origin": "external",
+          "description": "Calls Field (pydantic). app/features/feature_ingest/schemas/ingest_schemas.py:22",
+          "show": true,
+          "calls": {
+            "component": "ext.pydantic",
+            "type": "call",
+            "label": "calls Field",
+            "evidence": "app/features/feature_ingest/schemas/ingest_schemas.py:22  audience: list[Role] = Field(min_length=1)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "DocumentAccess",
+          "description": "Instance of DocumentAccess."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.CLEARANCE_RANKS",
+      "name": "CLEARANCE_RANKS",
+      "kind": "constant",
+      "side": "backend",
+      "layer": "config",
+      "description": "Maps each clearance level to a number so \"may this user read this document\" becomes rank <= rank.",
+      "flows": [
+        "ingest-documents",
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/core/clearance_ranks.py",
+        "symbol": "app.core.clearance_ranks.CLEARANCE_RANKS",
+        "lines": [
+          12,
+          16
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Imported by util_build_chunk_metadata (app/features/feature_ingest/utils/util_build_chunk_metadata.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-value",
+          "name": "CLEARANCE_RANKS",
+          "description": "dict[Clearance, int]"
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.Role",
+      "name": "Role",
+      "kind": "constant",
+      "side": "backend",
+      "layer": "schema",
+      "description": "The closed list of Northwind Logistics job roles a user can have and a document can be written for.",
+      "flows": [
+        "ingest-documents",
+        "mint-tokens",
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/core/role.py",
+        "symbol": "app.core.role.Role",
+        "lines": [
+          11,
+          11
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Imported by util_build_chunk_metadata (app/features/feature_ingest/utils/util_build_chunk_metadata.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-value",
+          "name": "Role",
+          "description": "module-level value"
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.HashingProvider",
+      "name": "HashingProvider",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Bag-of-words vectors: two texts are close when they share words.",
+      "flows": [
+        "ingest-documents",
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/embeddings/hashing_provider.py",
+        "symbol": "app.providers.embeddings.hashing_provider.HashingProvider",
+        "lines": [
+          17,
+          48
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by get_embedder (app/core/dependencies.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "HashingProvider",
+          "description": "Instance of HashingProvider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.SentenceTransformersProvider",
+      "name": "SentenceTransformersProvider",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Local embedding model, loaded once per process by core/dependencies.py.",
+      "flows": [
+        "ingest-documents",
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/embeddings/sentence_transformers_provider.py",
+        "symbol": "app.providers.embeddings.sentence_transformers_provider.SentenceTransformersProvider",
+        "lines": [
+          14,
+          38
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by get_embedder (app/core/dependencies.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "SentenceTransformersProvider",
+          "description": "Instance of SentenceTransformersProvider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.ChromaStore",
+      "name": "ChromaStore",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "A single Chroma collection opened once per process.",
+      "flows": [
+        "ingest-documents",
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/vectorstore/chroma_store.py",
+        "symbol": "app.providers.vectorstore.chroma_store.ChromaStore",
+        "lines": [
+          16,
+          56
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by get_vectorstore (app/core/dependencies.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-use-chromadb",
+          "title": "chromadb",
+          "origin": "external",
+          "description": "Calls chromadb (chromadb). app/providers/vectorstore/chroma_store.py:26",
+          "show": true,
+          "calls": {
+            "component": "ext.chroma_db",
+            "type": "call",
+            "label": "calls chromadb",
+            "evidence": "app/providers/vectorstore/chroma_store.py:26  self._client = chromadb.PersistentClient(path=path)"
+          }
+        },
+        {
+          "id": "op-use-retrievedchunk",
+          "title": "RetrievedChunk",
+          "origin": "imported",
+          "description": "Calls RetrievedChunk (app.providers.vectorstore.retrieved_chunk). app/providers/vectorstore/chroma_store.py:50",
+          "show": true,
+          "calls": {
+            "component": "be.RetrievedChunk",
+            "type": "call",
+            "label": "calls RetrievedChunk",
+            "evidence": "app/providers/vectorstore/chroma_store.py:50  RetrievedChunk(text=text, source_file=meta[\"source_file\"], page=meta[\"page\"], distance=distance)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "ChromaStore",
+          "description": "Instance of ChromaStore."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan",
+        "step_note": "uses new imports or its contract changed (import scan)"
+      },
+      "step_change": "changed"
+    },
+    {
+      "id": "be.EasyOcrProvider",
+      "name": "EasyOcrProvider",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "EasyOCR reader, built once per process because loading its models takes seconds.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/ocr/easyocr_provider.py",
+        "symbol": "app.providers.ocr.easyocr_provider.EasyOcrProvider",
+        "lines": [
+          11,
+          26
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by get_ocr_provider (app/core/dependencies.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "EasyOcrProvider",
+          "description": "Instance of EasyOcrProvider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.RetrievedChunk",
+      "name": "RetrievedChunk",
+      "kind": "class",
+      "side": "backend",
+      "layer": "provider",
+      "description": "A chunk returned by a similarity query.",
+      "flows": [
+        "chat-session",
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/vectorstore/retrieved_chunk.py",
+        "symbol": "app.providers.vectorstore.retrieved_chunk.RetrievedChunk",
+        "lines": [
+          10,
+          21
+        ]
+      },
+      "owner": "providers",
+      "component_reason": "Imported by service_retrieve_chunks (app/features/feature_chat/services/service_retrieve_chunks.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str"
+        },
+        {
+          "id": "in-source_file",
+          "name": "source_file",
+          "description": "str"
+        },
+        {
+          "id": "in-page",
+          "name": "page",
+          "description": "int"
+        },
+        {
+          "id": "in-distance",
+          "name": "distance",
+          "description": "float"
+        }
+      ],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-instance",
+          "name": "RetrievedChunk",
+          "description": "Instance of RetrievedChunk."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.pydantic_settings",
+      "name": "pydantic-settings",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "Typed settings loaded from environment variables and .env.",
+      "flows": [
+        "mint-tokens",
+        "chat-session"
+      ],
+      "source": null,
+      "owner": "third-party",
+      "component_reason": "Third-party library imported by project code (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.Clearance",
+      "name": "Clearance",
+      "kind": "constant",
+      "side": "backend",
+      "layer": "schema",
+      "description": "The closed list of clearance levels: how sensitive a document is, and how sensitive a user may read.",
+      "flows": [
+        "mint-tokens",
+        "chat-session",
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/core/clearance.py",
+        "symbol": "app.core.clearance.Clearance",
+        "lines": [
+          10,
+          10
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Imported by TokenClaims (app/core/token_claims.py); every imported first-party symbol is a component (CRD golden rule).",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [
+        {
+          "id": "out-value",
+          "name": "Clearance",
+          "description": "module-level value"
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code",
+        "generated_by": "import scan"
+      },
+      "step_change": "unchanged"
     }
   ],
-  "dependencies": [],
+  "dependencies": [
+    {
+      "from": "be.handle_mint_demo_tokens",
+      "to": "be.Settings",
+      "label": "type: Settings",
+      "evidence": "app/features/feature_auth/handlers/handle_mint_demo_tokens.py:13  def handle_mint_demo_tokens(settings: Settings) -> list[dict]:"
+    },
+    {
+      "from": "be.handle_mint_demo_tokens",
+      "to": "be.DEMO_USERS",
+      "label": "reads: DEMO_USERS",
+      "evidence": "app/features/feature_auth/handlers/handle_mint_demo_tokens.py:16  return [{\"user\": user, \"token\": service_mint_token(user, settings)} for user in DEMO_USERS]"
+    },
+    {
+      "from": "be.service_mint_token",
+      "to": "be.TokenClaims",
+      "label": "type: TokenClaims",
+      "evidence": "app/features/feature_auth/services/service_mint_token.py:16  def service_mint_token(claims: TokenClaims, settings: Settings, ttl_seconds: int | None = None) -> str:"
+    },
+    {
+      "from": "be.service_mint_token",
+      "to": "be.Settings",
+      "label": "type: Settings",
+      "evidence": "app/features/feature_auth/services/service_mint_token.py:16  def service_mint_token(claims: TokenClaims, settings: Settings, ttl_seconds: int | None = None) -> str:"
+    },
+    {
+      "from": "be.chat_socket",
+      "to": "ext.fastapi",
+      "label": "type: WebSocket",
+      "evidence": "app/features/feature_chat/router.py:20  websocket: WebSocket,"
+    },
+    {
+      "from": "be.handle_chat_socket",
+      "to": "ext.fastapi",
+      "label": "type: WebSocket",
+      "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:31  websocket: WebSocket,"
+    },
+    {
+      "from": "be.handle_chat_socket",
+      "to": "be.Settings",
+      "label": "type: Settings",
+      "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:32  settings: Settings,"
+    },
+    {
+      "from": "be.handle_chat_socket",
+      "to": "be.LLMProvider",
+      "label": "type: LLMProvider",
+      "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:33  llm: LLMProvider,"
+    },
+    {
+      "from": "be.handle_chat_socket",
+      "to": "be.EmbeddingProvider",
+      "label": "type: EmbeddingProvider",
+      "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:34  embedder: EmbeddingProvider,"
+    },
+    {
+      "from": "be.handle_chat_socket",
+      "to": "be.VectorStore",
+      "label": "type: VectorStore",
+      "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:35  store: VectorStore,"
+    },
+    {
+      "from": "be.handle_chat_socket",
+      "to": "be.AuthError",
+      "label": "raises / catches: AuthError",
+      "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:67  except AuthError as exc:"
+    },
+    {
+      "from": "be.verify_jwt",
+      "to": "be.Settings",
+      "label": "type: Settings",
+      "evidence": "app/core/verify_jwt.py:16  def verify_jwt(token: str, settings: Settings) -> TokenClaims:"
+    },
+    {
+      "from": "be.verify_jwt",
+      "to": "ext.pydantic",
+      "label": "raises / catches: ValidationError",
+      "evidence": "app/core/verify_jwt.py:39  except ValidationError:"
+    },
+    {
+      "from": "be.service_stream_answer",
+      "to": "be.LLMProvider",
+      "label": "type: LLMProvider",
+      "evidence": "app/features/feature_chat/services/service_stream_answer.py:17  async def service_stream_answer(user_message: str, llm: LLMProvider) -> AsyncIterator[str]:"
+    },
+    {
+      "from": "be.get_llm_provider",
+      "to": "be.LLMProvider",
+      "label": "type: LLMProvider",
+      "evidence": "app/core/dependencies.py:23  def get_llm_provider() -> LLMProvider:"
+    },
+    {
+      "from": "be.handle_build_sample_docs",
+      "to": "be.SAMPLE_DOCS",
+      "label": "reads: SAMPLE_DOCS",
+      "evidence": "app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:25  for doc in SAMPLE_DOCS:"
+    },
+    {
+      "from": "be.handle_ingest_documents",
+      "to": "be.EmbeddingProvider",
+      "label": "type: EmbeddingProvider",
+      "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:29  embedder: EmbeddingProvider,"
+    },
+    {
+      "from": "be.handle_ingest_documents",
+      "to": "be.VectorStore",
+      "label": "type: VectorStore",
+      "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:30  store: VectorStore,"
+    },
+    {
+      "from": "be.handle_ingest_documents",
+      "to": "be.OcrProvider",
+      "label": "type: OcrProvider",
+      "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:31  ocr: OcrProvider,"
+    },
+    {
+      "from": "be.service_extract_pages",
+      "to": "be.PageText",
+      "label": "type: PageText",
+      "evidence": "app/features/feature_ingest/services/service_extract_pages.py:32  async def service_extract_pages(path: Path) -> list[PageText]:"
+    },
+    {
+      "from": "be.service_ocr_page",
+      "to": "be.OcrProvider",
+      "label": "type: OcrProvider",
+      "evidence": "app/features/feature_ingest/services/service_ocr_page.py:25  async def service_ocr_page(path: Path, page_number: int, ocr: OcrProvider) -> str:"
+    },
+    {
+      "from": "be.util_build_chunk_metadata",
+      "to": "be.DocumentAccess",
+      "label": "type: DocumentAccess",
+      "evidence": "app/features/feature_ingest/utils/util_build_chunk_metadata.py:15  def util_build_chunk_metadata(source_file: str, page: int, chunk_index: int, access: DocumentAccess) -> dict[str, Any]:"
+    },
+    {
+      "from": "be.util_build_chunk_metadata",
+      "to": "be.CLEARANCE_RANKS",
+      "label": "reads: CLEARANCE_RANKS",
+      "evidence": "app/features/feature_ingest/utils/util_build_chunk_metadata.py:28  \"clearance_rank\": CLEARANCE_RANKS[access.clearance],"
+    },
+    {
+      "from": "be.util_build_chunk_metadata",
+      "to": "be.Role",
+      "label": "reads: Role",
+      "evidence": "app/features/feature_ingest/utils/util_build_chunk_metadata.py:32  for role in get_args(Role):"
+    },
+    {
+      "from": "be.service_embed_texts",
+      "to": "be.EmbeddingProvider",
+      "label": "type: EmbeddingProvider",
+      "evidence": "app/features/feature_ingest/services/service_embed_texts.py:11  async def service_embed_texts(texts: list[str], embedder: EmbeddingProvider) -> list[list[float]]:"
+    },
+    {
+      "from": "be.service_store_chunks",
+      "to": "be.VectorStore",
+      "label": "type: VectorStore",
+      "evidence": "app/features/feature_ingest/services/service_store_chunks.py:12  async def service_store_chunks(records: list[ChunkRecord], embeddings: list[list[float]], store: VectorStore) -> int:"
+    },
+    {
+      "from": "be.service_store_chunks",
+      "to": "be.ChunkRecord",
+      "label": "type: ChunkRecord",
+      "evidence": "app/features/feature_ingest/services/service_store_chunks.py:12  async def service_store_chunks(records: list[ChunkRecord], embeddings: list[list[float]], store: VectorStore) -> int:"
+    },
+    {
+      "from": "be.get_embedder",
+      "to": "be.EmbeddingProvider",
+      "label": "type: EmbeddingProvider",
+      "evidence": "app/core/dependencies.py:38  def get_embedder() -> EmbeddingProvider:"
+    },
+    {
+      "from": "be.get_vectorstore",
+      "to": "be.VectorStore",
+      "label": "type: VectorStore",
+      "evidence": "app/core/dependencies.py:54  def get_vectorstore() -> VectorStore:"
+    },
+    {
+      "from": "be.get_ocr_provider",
+      "to": "be.OcrProvider",
+      "label": "type: OcrProvider",
+      "evidence": "app/core/dependencies.py:61  def get_ocr_provider() -> OcrProvider:"
+    },
+    {
+      "from": "be.service_retrieve_chunks",
+      "to": "be.TokenClaims",
+      "label": "type: TokenClaims",
+      "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:17  user: TokenClaims,"
+    },
+    {
+      "from": "be.service_retrieve_chunks",
+      "to": "be.EmbeddingProvider",
+      "label": "type: EmbeddingProvider",
+      "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:18  embedder: EmbeddingProvider,"
+    },
+    {
+      "from": "be.service_retrieve_chunks",
+      "to": "be.VectorStore",
+      "label": "type: VectorStore",
+      "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:19  store: VectorStore,"
+    },
+    {
+      "from": "be.service_retrieve_chunks",
+      "to": "be.RetrievedChunk",
+      "label": "type: RetrievedChunk",
+      "evidence": "app/features/feature_chat/services/service_retrieve_chunks.py:21  ) -> list[RetrievedChunk]:"
+    },
+    {
+      "from": "be.util_build_access_filter",
+      "to": "be.TokenClaims",
+      "label": "type: TokenClaims",
+      "evidence": "app/features/feature_chat/utils/util_build_access_filter.py:14  def util_build_access_filter(user: TokenClaims) -> dict[str, Any]:"
+    },
+    {
+      "from": "be.util_build_access_filter",
+      "to": "be.CLEARANCE_RANKS",
+      "label": "reads: CLEARANCE_RANKS",
+      "evidence": "app/features/feature_chat/utils/util_build_access_filter.py:29  {\"clearance_rank\": {\"$lte\": CLEARANCE_RANKS[user.clearance]}},"
+    },
+    {
+      "from": "be.ChromaStore.query",
+      "to": "be.RetrievedChunk",
+      "label": "type: RetrievedChunk",
+      "evidence": "app/providers/vectorstore/chroma_store.py:54  async def query(self, embedding: list[float], top_k: int, where: dict[str, Any]) -> list[RetrievedChunk]:"
+    },
+    {
+      "from": "be.Settings",
+      "to": "ext.pydantic_settings",
+      "label": "extends: BaseSettings",
+      "evidence": "app/core/config.py:12  class Settings(BaseSettings):"
+    },
+    {
+      "from": "be.TokenClaims",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/core/token_claims.py:13  class TokenClaims(BaseModel):"
+    },
+    {
+      "from": "be.TokenClaims",
+      "to": "be.Role",
+      "label": "type: Role",
+      "evidence": "app/core/token_claims.py:27  role: Role"
+    },
+    {
+      "from": "be.TokenClaims",
+      "to": "be.Clearance",
+      "label": "type: Clearance",
+      "evidence": "app/core/token_claims.py:28  clearance: Clearance"
+    },
+    {
+      "from": "be.VectorStore",
+      "to": "be.RetrievedChunk",
+      "label": "type: RetrievedChunk",
+      "evidence": "app/providers/vectorstore/base.py:23  async def query(self, embedding: list[float], top_k: int, where: dict[str, Any]) -> list[RetrievedChunk]:"
+    },
+    {
+      "from": "be.ClientMessage",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:12  class ClientMessage(BaseModel):"
+    },
+    {
+      "from": "be.AuthFailedEvent",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:34  class AuthFailedEvent(BaseModel):"
+    },
+    {
+      "from": "be.AuthSuccessEvent",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:24  class AuthSuccessEvent(BaseModel):"
+    },
+    {
+      "from": "be.ErrorEvent",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:71  class ErrorEvent(BaseModel):"
+    },
+    {
+      "from": "be.SourcesEvent",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:48  class SourcesEvent(BaseModel):"
+    },
+    {
+      "from": "be.SourceRef",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:41  class SourceRef(BaseModel):"
+    },
+    {
+      "from": "be.StreamEvent",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:58  class StreamEvent(BaseModel):"
+    },
+    {
+      "from": "be.DoneEvent",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_chat/schemas/chat_schemas.py:65  class DoneEvent(BaseModel):"
+    },
+    {
+      "from": "be.ChunkRecord",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_ingest/schemas/ingest_schemas.py:39  class ChunkRecord(BaseModel):"
+    },
+    {
+      "from": "be.PageText",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_ingest/schemas/ingest_schemas.py:26  class PageText(BaseModel):"
+    },
+    {
+      "from": "be.DocumentAccess",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/features/feature_ingest/schemas/ingest_schemas.py:15  class DocumentAccess(BaseModel):"
+    },
+    {
+      "from": "be.DocumentAccess",
+      "to": "be.Role",
+      "label": "type: Role",
+      "evidence": "app/features/feature_ingest/schemas/ingest_schemas.py:22  audience: list[Role] = Field(min_length=1)"
+    },
+    {
+      "from": "be.DocumentAccess",
+      "to": "be.Clearance",
+      "label": "type: Clearance",
+      "evidence": "app/features/feature_ingest/schemas/ingest_schemas.py:23  clearance: Clearance"
+    },
+    {
+      "from": "be.CLEARANCE_RANKS",
+      "to": "be.Clearance",
+      "label": "type: Clearance",
+      "evidence": "app/core/clearance_ranks.py:12  CLEARANCE_RANKS: dict[Clearance, int] = {"
+    },
+    {
+      "from": "be.RetrievedChunk",
+      "to": "ext.pydantic",
+      "label": "extends: BaseModel",
+      "evidence": "app/providers/vectorstore/retrieved_chunk.py:10  class RetrievedChunk(BaseModel):"
+    }
+  ],
   "unresolved": []
 }
