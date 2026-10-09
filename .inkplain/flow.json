@@ -90,7 +90,7 @@
     },
     "content": {
       "status": "done",
-      "summary": "Rebuilt portal content to revised skill: 8 categories (Overview, STEP-1..STEP-6, Conclusion), 43 public items (14 Overview, 26 step lessons, 3 Conclusion). Removed all 81 superseded per-component items. Added consolidated 4M component analysis, CRD trees, six .inkp diagrams, GitHub file links, run/self-checks and selected real inline source excerpts. Set all seven case profile skills to beginner. Verified category counts, 0 obsolete items, sample bodies, and skill levels. Full source-code line-by-line detail for every function and live browser rendering remain unchecked.",
+      "summary": "Updated current content-development skill to require a github_file immediately after every source-backed component explanation. Revised STEP-1 explanations to remove generic repetitive wording, updated all six System design lessons, and reordered Components lessons. MCP read-back verified all 12 lesson groups (including STEP-2 split) and every github_file follows its explanatory HTML block. No repo source files changed.",
       "started_at": "2026-10-09T12:31:03.341Z",
       "finished_at": "2026-10-09T14:07:05.270Z",
       "updated_by": "api-key:for-chatgpt-test-2",
@@ -107,5 +107,5 @@
       }
     }
   },
-  "updated_at": "2026-10-09T14:07:17.948Z"
+  "updated_at": "2026-10-09T14:28:30.231Z"
 }
