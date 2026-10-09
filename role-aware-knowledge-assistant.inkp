@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-09T09:17:08Z",
+  "exportedAt": "2026-10-09T09:56:37Z",
   "projectId": "role-aware-knowledge-assistant",
   "projectName": "Role-Aware Knowledge Assistant",
   "meta": null,
@@ -99,7 +99,7 @@
               "y": 340
             },
             "width": 340,
-            "height": 180,
+            "height": 190,
             "data": {
               "label": "chat_socket",
               "shape": "module",
@@ -109,11 +109,18 @@
               "linkedCanvasName": "chat_socket",
               "operationSteps": [
                 {
+                  "id": "op-dep-llm",
+                  "title": "get_llm_provider",
+                  "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:19\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:19  async def chat_socket(websocket: WebSocket, settings=Depends(get_settings), llm=Depends(get_llm_provider)) -> None:",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
                   "id": "op-delegate",
                   "title": "handle_chat_socket",
                   "description": "Passes the socket and the dependencies through. app/features/feature_chat/router.py:21\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:21  await handle_chat_socket(websocket, settings, llm)",
                   "showInDiagram": true,
-                  "order_no": 1
+                  "order_no": 2
                 }
               ],
               "nodeAttributes": [
@@ -451,58 +458,12 @@
             }
           },
           {
-            "id": "s1-n-be-fakeprovider-stream-chat",
-            "type": "diagramNode",
-            "parentId": "s1-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 60
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "FakeProvider.stream_chat",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s1-be-fakeprovider-stream-chat",
-              "linkedCanvasName": "FakeProvider.stream_chat",
-              "operationSteps": [
-                {
-                  "id": "op-split",
-                  "title": "inline: split words",
-                  "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.FakeProvider.stream_chat"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/llm/fake_provider.py:14-27"
-                },
-                {
-                  "key": "step_change",
-                  "value": "added"
-                }
-              ]
-            }
-          },
-          {
             "id": "s1-n-be-get-llm-provider",
             "type": "diagramNode",
             "parentId": "s1-c-backend",
             "position": {
               "x": 1300,
-              "y": 280
+              "y": 60
             },
             "width": 340,
             "height": 190,
@@ -541,6 +502,52 @@
                 {
                   "key": "source",
                   "value": "app/core/dependencies.py:15-27"
+                },
+                {
+                  "key": "step_change",
+                  "value": "added"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s1-n-be-fakeprovider-stream-chat",
+            "type": "diagramNode",
+            "parentId": "s1-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 290
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "FakeProvider.stream_chat",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s1-be-fakeprovider-stream-chat",
+              "linkedCanvasName": "FakeProvider.stream_chat",
+              "operationSteps": [
+                {
+                  "id": "op-split",
+                  "title": "inline: split words",
+                  "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.FakeProvider.stream_chat"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/llm/fake_provider.py:14-27"
                 },
                 {
                   "key": "step_change",
@@ -639,6 +646,23 @@
             "targetHandle": "l",
             "type": "smoothstep",
             "label": "sign",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s1-e-be-chat-socket-op-dep-llm",
+            "source": "s1-n-be-chat-socket",
+            "target": "s1-n-be-get-llm-provider",
+            "sourceHandle": "operation:op-dep-llm:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
             "data": {
               "color": "#333333",
               "lineStyle": "solid",
@@ -830,7 +854,7 @@
               "y": 340
             },
             "width": 340,
-            "height": 180,
+            "height": 190,
             "data": {
               "label": "chat_socket",
               "shape": "module",
@@ -840,11 +864,18 @@
               "linkedCanvasName": "chat_socket",
               "operationSteps": [
                 {
+                  "id": "op-dep-llm",
+                  "title": "get_llm_provider",
+                  "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:19\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:19  async def chat_socket(websocket: WebSocket, settings=Depends(get_settings), llm=Depends(get_llm_provider)) -> None:",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
                   "id": "op-delegate",
                   "title": "handle_chat_socket",
                   "description": "Passes the socket and the dependencies through. app/features/feature_chat/router.py:21\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:21  await handle_chat_socket(websocket, settings, llm)",
                   "showInDiagram": true,
-                  "order_no": 1
+                  "order_no": 2
                 }
               ],
               "nodeAttributes": [
@@ -873,7 +904,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 40,
-              "y": 560
+              "y": 570
             },
             "width": 340,
             "height": 240,
@@ -933,7 +964,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 40,
-              "y": 840
+              "y": 850
             },
             "width": 340,
             "height": 380,
@@ -2033,12 +2064,65 @@
             }
           },
           {
-            "id": "s2-n-be-fakeprovider-stream-chat",
+            "id": "s2-n-be-get-llm-provider",
             "type": "diagramNode",
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
               "y": 60
+            },
+            "width": 340,
+            "height": 190,
+            "data": {
+              "label": "get_llm_provider",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s2-be-get-llm-provider",
+              "linkedCanvasName": "get_llm_provider",
+              "operationSteps": [
+                {
+                  "id": "op-settings",
+                  "title": "get_settings",
+                  "description": "Reads the provider name. app/core/dependencies.py:30",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-fake",
+                  "title": "FakeProvider",
+                  "description": "if llm_provider == \"fake\": builds the FakeProvider. app/core/dependencies.py:33",
+                  "showInDiagram": true,
+                  "order_no": 2
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_llm_provider"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:22-34"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s2-n-be-fakeprovider-stream-chat",
+            "type": "diagramNode",
+            "parentId": "s2-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 290
             },
             "width": 340,
             "height": 180,
@@ -2084,7 +2168,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
-              "y": 280
+              "y": 510
             },
             "width": 340,
             "height": 190,
@@ -2137,7 +2221,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
-              "y": 510
+              "y": 740
             },
             "width": 340,
             "height": 180,
@@ -2183,7 +2267,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
-              "y": 730
+              "y": 960
             },
             "width": 340,
             "height": 180,
@@ -2229,7 +2313,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
-              "y": 950
+              "y": 1180
             },
             "width": 340,
             "height": 180,
@@ -2275,7 +2359,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
-              "y": 1170
+              "y": 1400
             },
             "width": 340,
             "height": 180,
@@ -2321,7 +2405,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
-              "y": 1390
+              "y": 1620
             },
             "width": 340,
             "height": 180,
@@ -2367,7 +2451,7 @@
             "parentId": "s2-c-backend",
             "position": {
               "x": 1300,
-              "y": 1610
+              "y": 1840
             },
             "width": 340,
             "height": 180,
@@ -2403,59 +2487,6 @@
                 {
                   "key": "step_change",
                   "value": "added"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s2-n-be-get-llm-provider",
-            "type": "diagramNode",
-            "parentId": "s2-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 1830
-            },
-            "width": 340,
-            "height": 190,
-            "data": {
-              "label": "get_llm_provider",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s2-be-get-llm-provider",
-              "linkedCanvasName": "get_llm_provider",
-              "operationSteps": [
-                {
-                  "id": "op-settings",
-                  "title": "get_settings",
-                  "description": "Reads the provider name. app/core/dependencies.py:30",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-fake",
-                  "title": "FakeProvider",
-                  "description": "if llm_provider == \"fake\": builds the FakeProvider. app/core/dependencies.py:33",
-                  "showInDiagram": true,
-                  "order_no": 2
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_llm_provider"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:22-34"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
                 }
               ]
             }
@@ -2685,6 +2716,23 @@
             "targetHandle": "l",
             "type": "smoothstep",
             "label": "sign",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s2-e-be-chat-socket-op-dep-llm",
+            "source": "s2-n-be-chat-socket",
+            "target": "s2-n-be-get-llm-provider",
+            "sourceHandle": "operation:op-dep-llm:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
             "data": {
               "color": "#333333",
               "lineStyle": "solid",
@@ -3386,7 +3434,7 @@
               "y": 340
             },
             "width": 340,
-            "height": 180,
+            "height": 290,
             "data": {
               "label": "chat_socket",
               "shape": "module",
@@ -3396,11 +3444,32 @@
               "linkedCanvasName": "chat_socket",
               "operationSteps": [
                 {
+                  "id": "op-dep-llm",
+                  "title": "get_llm_provider",
+                  "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-dep-embedder",
+                  "title": "get_embedder",
+                  "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+                  "showInDiagram": true,
+                  "order_no": 2
+                },
+                {
+                  "id": "op-dep-store",
+                  "title": "get_vectorstore",
+                  "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+                  "showInDiagram": true,
+                  "order_no": 3
+                },
+                {
                   "id": "op-delegate",
                   "title": "handle_chat_socket",
                   "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
                   "showInDiagram": true,
-                  "order_no": 1
+                  "order_no": 4
                 }
               ],
               "nodeAttributes": [
@@ -3429,7 +3498,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 40,
-              "y": 560
+              "y": 670
             },
             "width": 340,
             "height": 240,
@@ -3489,7 +3558,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 40,
-              "y": 840
+              "y": 950
             },
             "width": 340,
             "height": 380,
@@ -4723,7 +4792,7 @@
             }
           },
           {
-            "id": "s3-n-be-sentencetransformersprovider-embed-query",
+            "id": "s3-n-be-get-llm-provider",
             "type": "diagramNode",
             "parentId": "s3-c-backend",
             "position": {
@@ -4731,27 +4800,34 @@
               "y": 60
             },
             "width": 340,
-            "height": 180,
+            "height": 190,
             "data": {
-              "label": "SentenceTransformersProvider.embed_query",
+              "label": "get_llm_provider",
               "shape": "module",
               "icon": "process-executor",
               "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-sentencetransformersprovider-embed-query",
-              "linkedCanvasName": "SentenceTransformersProvider.embed_query",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-get-llm-provider",
+              "linkedCanvasName": "get_llm_provider",
               "operationSteps": [
                 {
-                  "id": "op-encode",
-                  "title": "SentenceTransformer.encode",
-                  "description": "encode(QUERY_PREFIX + text, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:37\n→ await sentence-transformers (BAAI/bge-small-en-v1.5) (encode query)\nEvidence: app/providers/embeddings/sentence_transformers_provider.py:37  vector = await asyncio.to_thread(self._model.encode, QUERY_PREFIX + text, normalize_embeddings=True)",
+                  "id": "op-settings",
+                  "title": "get_settings",
+                  "description": "Reads the provider name. app/core/dependencies.py:30",
                   "showInDiagram": true,
                   "order_no": 1
+                },
+                {
+                  "id": "op-fake",
+                  "title": "FakeProvider",
+                  "description": "if llm_provider == \"fake\": builds the FakeProvider. app/core/dependencies.py:33",
+                  "showInDiagram": true,
+                  "order_no": 2
                 }
               ],
               "nodeAttributes": [
                 {
                   "key": "crd_id",
-                  "value": "be.SentenceTransformersProvider.embed_query"
+                  "value": "be.get_llm_provider"
                 },
                 {
                   "key": "layer",
@@ -4759,145 +4835,7 @@
                 },
                 {
                   "key": "source",
-                  "value": "app/providers/embeddings/sentence_transformers_provider.py:35-38"
-                },
-                {
-                  "key": "step_change",
-                  "value": "added"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s3-n-be-hashingprovider-embed-query",
-            "type": "diagramNode",
-            "parentId": "s3-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 280
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "HashingProvider.embed_query",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-hashingprovider-embed-query",
-              "linkedCanvasName": "HashingProvider.embed_query",
-              "operationSteps": [
-                {
-                  "id": "op-embed",
-                  "title": "_embed",
-                  "description": "Hashed bag-of-words vector. app/providers/embeddings/hashing_provider.py:48",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.HashingProvider.embed_query"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/embeddings/hashing_provider.py:46-48"
-                },
-                {
-                  "key": "step_change",
-                  "value": "added"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s3-n-be-chromastore-query",
-            "type": "diagramNode",
-            "parentId": "s3-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 500
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "ChromaStore.query",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-chromastore-query",
-              "linkedCanvasName": "ChromaStore.query",
-              "operationSteps": [
-                {
-                  "id": "op-query",
-                  "title": "_query",
-                  "description": "In a worker thread: collection.query(query_embeddings=[embedding], n_results=top_k, where=where), flattened to RetrievedChunk. app/providers/vectorstore/chroma_store.py:56\n→ await Chroma collection (northwind_docs) (filtered similarity search)\nEvidence: app/providers/vectorstore/chroma_store.py:56  return await asyncio.to_thread(self._query, embedding, top_k, where)",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.ChromaStore.query"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/vectorstore/chroma_store.py:54-56"
-                },
-                {
-                  "key": "step_change",
-                  "value": "added"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s3-n-be-fakeprovider-stream-chat",
-            "type": "diagramNode",
-            "parentId": "s3-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 720
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "FakeProvider.stream_chat",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-fakeprovider-stream-chat",
-              "linkedCanvasName": "FakeProvider.stream_chat",
-              "operationSteps": [
-                {
-                  "id": "op-split",
-                  "title": "inline: split words",
-                  "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.FakeProvider.stream_chat"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/llm/fake_provider.py:14-27"
+                  "value": "app/core/dependencies.py:22-34"
                 },
                 {
                   "key": "step_change",
@@ -4912,7 +4850,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 1300,
-              "y": 940
+              "y": 290
             },
             "width": 340,
             "height": 190,
@@ -4965,7 +4903,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 1300,
-              "y": 1170
+              "y": 520
             },
             "width": 340,
             "height": 180,
@@ -5006,12 +4944,196 @@
             }
           },
           {
+            "id": "s3-n-be-sentencetransformersprovider-embed-query",
+            "type": "diagramNode",
+            "parentId": "s3-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 740
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "SentenceTransformersProvider.embed_query",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-sentencetransformersprovider-embed-query",
+              "linkedCanvasName": "SentenceTransformersProvider.embed_query",
+              "operationSteps": [
+                {
+                  "id": "op-encode",
+                  "title": "SentenceTransformer.encode",
+                  "description": "encode(QUERY_PREFIX + text, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:37\n→ await sentence-transformers (BAAI/bge-small-en-v1.5) (encode query)\nEvidence: app/providers/embeddings/sentence_transformers_provider.py:37  vector = await asyncio.to_thread(self._model.encode, QUERY_PREFIX + text, normalize_embeddings=True)",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.SentenceTransformersProvider.embed_query"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/embeddings/sentence_transformers_provider.py:35-38"
+                },
+                {
+                  "key": "step_change",
+                  "value": "added"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s3-n-be-hashingprovider-embed-query",
+            "type": "diagramNode",
+            "parentId": "s3-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 960
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "HashingProvider.embed_query",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-hashingprovider-embed-query",
+              "linkedCanvasName": "HashingProvider.embed_query",
+              "operationSteps": [
+                {
+                  "id": "op-embed",
+                  "title": "_embed",
+                  "description": "Hashed bag-of-words vector. app/providers/embeddings/hashing_provider.py:48",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.HashingProvider.embed_query"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/embeddings/hashing_provider.py:46-48"
+                },
+                {
+                  "key": "step_change",
+                  "value": "added"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s3-n-be-chromastore-query",
+            "type": "diagramNode",
+            "parentId": "s3-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 1180
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "ChromaStore.query",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-chromastore-query",
+              "linkedCanvasName": "ChromaStore.query",
+              "operationSteps": [
+                {
+                  "id": "op-query",
+                  "title": "_query",
+                  "description": "In a worker thread: collection.query(query_embeddings=[embedding], n_results=top_k, where=where), flattened to RetrievedChunk. app/providers/vectorstore/chroma_store.py:56\n→ await Chroma collection (northwind_docs) (filtered similarity search)\nEvidence: app/providers/vectorstore/chroma_store.py:56  return await asyncio.to_thread(self._query, embedding, top_k, where)",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.ChromaStore.query"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:54-56"
+                },
+                {
+                  "key": "step_change",
+                  "value": "added"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s3-n-be-fakeprovider-stream-chat",
+            "type": "diagramNode",
+            "parentId": "s3-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 1400
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "FakeProvider.stream_chat",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-fakeprovider-stream-chat",
+              "linkedCanvasName": "FakeProvider.stream_chat",
+              "operationSteps": [
+                {
+                  "id": "op-split",
+                  "title": "inline: split words",
+                  "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.FakeProvider.stream_chat"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/llm/fake_provider.py:14-27"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
             "id": "s3-n-be-get-ocr-provider",
             "type": "diagramNode",
             "parentId": "s3-c-backend",
             "position": {
               "x": 1300,
-              "y": 1390
+              "y": 1620
             },
             "width": 340,
             "height": 180,
@@ -5057,7 +5179,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 1300,
-              "y": 1610
+              "y": 1840
             },
             "width": 340,
             "height": 180,
@@ -5103,7 +5225,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 1300,
-              "y": 1830
+              "y": 2060
             },
             "width": 340,
             "height": 180,
@@ -5149,7 +5271,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 1300,
-              "y": 2050
+              "y": 2280
             },
             "width": 340,
             "height": 180,
@@ -5195,7 +5317,7 @@
             "parentId": "s3-c-backend",
             "position": {
               "x": 1300,
-              "y": 2270
+              "y": 2500
             },
             "width": 340,
             "height": 180,
@@ -5227,59 +5349,6 @@
                 {
                   "key": "source",
                   "value": "app/providers/vectorstore/chroma_store.py:30-32"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s3-n-be-get-llm-provider",
-            "type": "diagramNode",
-            "parentId": "s3-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 2490
-            },
-            "width": 340,
-            "height": 190,
-            "data": {
-              "label": "get_llm_provider",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s3-be-get-llm-provider",
-              "linkedCanvasName": "get_llm_provider",
-              "operationSteps": [
-                {
-                  "id": "op-settings",
-                  "title": "get_settings",
-                  "description": "Reads the provider name. app/core/dependencies.py:30",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-fake",
-                  "title": "FakeProvider",
-                  "description": "if llm_provider == \"fake\": builds the FakeProvider. app/core/dependencies.py:33",
-                  "showInDiagram": true,
-                  "order_no": 2
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_llm_provider"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:22-34"
                 },
                 {
                   "key": "step_change",
@@ -5513,6 +5582,57 @@
             "targetHandle": "l",
             "type": "smoothstep",
             "label": "sign",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s3-e-be-chat-socket-op-dep-llm",
+            "source": "s3-n-be-chat-socket",
+            "target": "s3-n-be-get-llm-provider",
+            "sourceHandle": "operation:op-dep-llm:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s3-e-be-chat-socket-op-dep-embedder",
+            "source": "s3-n-be-chat-socket",
+            "target": "s3-n-be-get-embedder",
+            "sourceHandle": "operation:op-dep-embedder:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s3-e-be-chat-socket-op-dep-store",
+            "source": "s3-n-be-chat-socket",
+            "target": "s3-n-be-get-vectorstore",
+            "sourceHandle": "operation:op-dep-store:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
             "data": {
               "color": "#333333",
               "lineStyle": "solid",
@@ -6333,7 +6453,7 @@
               "y": 340
             },
             "width": 340,
-            "height": 180,
+            "height": 290,
             "data": {
               "label": "chat_socket",
               "shape": "module",
@@ -6343,11 +6463,32 @@
               "linkedCanvasName": "chat_socket",
               "operationSteps": [
                 {
+                  "id": "op-dep-llm",
+                  "title": "get_llm_provider",
+                  "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-dep-embedder",
+                  "title": "get_embedder",
+                  "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+                  "showInDiagram": true,
+                  "order_no": 2
+                },
+                {
+                  "id": "op-dep-store",
+                  "title": "get_vectorstore",
+                  "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+                  "showInDiagram": true,
+                  "order_no": 3
+                },
+                {
                   "id": "op-delegate",
                   "title": "handle_chat_socket",
                   "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
                   "showInDiagram": true,
-                  "order_no": 1
+                  "order_no": 4
                 }
               ],
               "nodeAttributes": [
@@ -6376,7 +6517,7 @@
             "parentId": "s4-c-backend",
             "position": {
               "x": 40,
-              "y": 560
+              "y": 670
             },
             "width": 340,
             "height": 240,
@@ -6436,7 +6577,7 @@
             "parentId": "s4-c-backend",
             "position": {
               "x": 40,
-              "y": 840
+              "y": 950
             },
             "width": 340,
             "height": 380,
@@ -7744,631 +7885,12 @@
             }
           },
           {
-            "id": "s4-n-be-sentencetransformersprovider-embed-query",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 60
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "SentenceTransformersProvider.embed_query",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-sentencetransformersprovider-embed-query",
-              "linkedCanvasName": "SentenceTransformersProvider.embed_query",
-              "operationSteps": [
-                {
-                  "id": "op-encode",
-                  "title": "SentenceTransformer.encode",
-                  "description": "encode(QUERY_PREFIX + text, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:37\n→ await sentence-transformers (BAAI/bge-small-en-v1.5) (encode query)\nEvidence: app/providers/embeddings/sentence_transformers_provider.py:37  vector = await asyncio.to_thread(self._model.encode, QUERY_PREFIX + text, normalize_embeddings=True)",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.SentenceTransformersProvider.embed_query"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/embeddings/sentence_transformers_provider.py:35-38"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-hashingprovider-embed-query",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 280
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "HashingProvider.embed_query",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-hashingprovider-embed-query",
-              "linkedCanvasName": "HashingProvider.embed_query",
-              "operationSteps": [
-                {
-                  "id": "op-embed",
-                  "title": "_embed",
-                  "description": "Hashed bag-of-words vector. app/providers/embeddings/hashing_provider.py:48",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.HashingProvider.embed_query"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/embeddings/hashing_provider.py:46-48"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-chromastore-query",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 500
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "ChromaStore.query",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-chromastore-query",
-              "linkedCanvasName": "ChromaStore.query",
-              "operationSteps": [
-                {
-                  "id": "op-query",
-                  "title": "_query",
-                  "description": "In a worker thread: collection.query(query_embeddings=[embedding], n_results=top_k, where=where), flattened to RetrievedChunk. app/providers/vectorstore/chroma_store.py:56\n→ await Chroma collection (northwind_docs) (filtered similarity search)\nEvidence: app/providers/vectorstore/chroma_store.py:56  return await asyncio.to_thread(self._query, embedding, top_k, where)",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.ChromaStore.query"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/vectorstore/chroma_store.py:54-56"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-fakeprovider-stream-chat",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 720
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "FakeProvider.stream_chat",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-fakeprovider-stream-chat",
-              "linkedCanvasName": "FakeProvider.stream_chat",
-              "operationSteps": [
-                {
-                  "id": "op-split",
-                  "title": "inline: split words",
-                  "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.FakeProvider.stream_chat"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/llm/fake_provider.py:14-27"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-openaiprovider-stream-chat",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 940
-            },
-            "width": 340,
-            "height": 190,
-            "data": {
-              "label": "OpenAIProvider.stream_chat",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-openaiprovider-stream-chat",
-              "linkedCanvasName": "OpenAIProvider.stream_chat",
-              "operationSteps": [
-                {
-                  "id": "op-create",
-                  "title": "chat.completions.create",
-                  "description": "stream=True request with the system and user messages. app/providers/llm/openai_provider.py:30\n→ http OpenAI API (POST /v1/chat/completions)\nEvidence: app/providers/llm/openai_provider.py:30  stream = await self._client.chat.completions.create(",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-yield",
-                  "title": "inline: yield deltas",
-                  "description": "Yields non-empty delta.content pieces. app/providers/llm/openai_provider.py:38",
-                  "showInDiagram": true,
-                  "order_no": 2
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.OpenAIProvider.stream_chat"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/llm/openai_provider.py:22-38"
-                },
-                {
-                  "key": "step_change",
-                  "value": "added"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-geminiprovider-stream-chat",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 1170
-            },
-            "width": 340,
-            "height": 190,
-            "data": {
-              "label": "GeminiProvider.stream_chat",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-geminiprovider-stream-chat",
-              "linkedCanvasName": "GeminiProvider.stream_chat",
-              "operationSteps": [
-                {
-                  "id": "op-stream",
-                  "title": "aio.models.generate_content_stream",
-                  "description": "Streaming request with system_instruction. app/providers/llm/gemini_provider.py:31\n→ http Gemini API (POST models/{model}:streamGenerateContent)\nEvidence: app/providers/llm/gemini_provider.py:31  stream = await self._client.aio.models.generate_content_stream(",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-yield",
-                  "title": "inline: yield text",
-                  "description": "Yields non-empty chunk.text. app/providers/llm/gemini_provider.py:39",
-                  "showInDiagram": true,
-                  "order_no": 2
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.GeminiProvider.stream_chat"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/llm/gemini_provider.py:23-39"
-                },
-                {
-                  "key": "step_change",
-                  "value": "added"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-get-embedder",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 1400
-            },
-            "width": 340,
-            "height": 190,
-            "data": {
-              "label": "get_embedder",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-get-embedder",
-              "linkedCanvasName": "get_embedder",
-              "operationSteps": [
-                {
-                  "id": "op-hashing",
-                  "title": "HashingProvider",
-                  "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:58",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-st",
-                  "title": "SentenceTransformersProvider",
-                  "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:60",
-                  "showInDiagram": true,
-                  "order_no": 2
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_embedder"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:48-61"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-get-vectorstore",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 1630
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "get_vectorstore",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-get-vectorstore",
-              "linkedCanvasName": "get_vectorstore",
-              "operationSteps": [
-                {
-                  "id": "op-chroma",
-                  "title": "ChromaStore",
-                  "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:68",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_vectorstore"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:64-68"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-get-ocr-provider",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 1850
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "get_ocr_provider",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-get-ocr-provider",
-              "linkedCanvasName": "get_ocr_provider",
-              "operationSteps": [
-                {
-                  "id": "op-easyocr",
-                  "title": "EasyOcrProvider",
-                  "description": "Splits the language list and builds the reader. app/core/dependencies.py:76",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_ocr_provider"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:71-76"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-easyocrprovider-read-text",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 2070
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "EasyOcrProvider.read_text",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-easyocrprovider-read-text",
-              "linkedCanvasName": "EasyOcrProvider.read_text",
-              "operationSteps": [
-                {
-                  "id": "op-read",
-                  "title": "Reader.readtext",
-                  "description": "readtext(png, detail=0, paragraph=True) via asyncio.to_thread. app/providers/ocr/easyocr_provider.py:25\n→ await EasyOCR (OCR)\nEvidence: app/providers/ocr/easyocr_provider.py:25  paragraphs = await asyncio.to_thread(self._reader.readtext, png_bytes, detail=0, paragraph=True)",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.EasyOcrProvider.read_text"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/ocr/easyocr_provider.py:22-26"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-sentencetransformersprovider-embed-documents",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 2290
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "SentenceTransformersProvider.embed_documents",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-sentencetransformersprovider-embed-documents",
-              "linkedCanvasName": "SentenceTransformersProvider.embed_documents",
-              "operationSteps": [
-                {
-                  "id": "op-encode",
-                  "title": "SentenceTransformer.encode",
-                  "description": "encode(texts, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:31\n→ await sentence-transformers (BAAI/bge-small-en-v1.5) (encode)\nEvidence: app/providers/embeddings/sentence_transformers_provider.py:31  vectors = await asyncio.to_thread(self._model.encode, texts, normalize_embeddings=True)",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.SentenceTransformersProvider.embed_documents"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/embeddings/sentence_transformers_provider.py:28-33"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-hashingprovider-embed-documents",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 2510
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "HashingProvider.embed_documents",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-hashingprovider-embed-documents",
-              "linkedCanvasName": "HashingProvider.embed_documents",
-              "operationSteps": [
-                {
-                  "id": "op-embed",
-                  "title": "_embed",
-                  "description": "Hashes each non-stopword into one of 512 slots and normalises. app/providers/embeddings/hashing_provider.py:44",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.HashingProvider.embed_documents"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/embeddings/hashing_provider.py:42-44"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s4-n-be-chromastore-upsert",
-            "type": "diagramNode",
-            "parentId": "s4-c-backend",
-            "position": {
-              "x": 1300,
-              "y": 2730
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "ChromaStore.upsert",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-chromastore-upsert",
-              "linkedCanvasName": "ChromaStore.upsert",
-              "operationSteps": [
-                {
-                  "id": "op-upsert",
-                  "title": "collection.upsert",
-                  "description": "Chroma upsert via asyncio.to_thread. app/providers/vectorstore/chroma_store.py:32\n→ await Chroma collection (northwind_docs) (upsert)\nEvidence: app/providers/vectorstore/chroma_store.py:32  await asyncio.to_thread(self._collection.upsert, ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.ChromaStore.upsert"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/providers/vectorstore/chroma_store.py:30-32"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
             "id": "s4-n-be-get-llm-provider",
             "type": "diagramNode",
             "parentId": "s4-c-backend",
             "position": {
               "x": 1300,
-              "y": 2950
+              "y": 60
             },
             "width": 340,
             "height": 290,
@@ -8425,6 +7947,625 @@
                 {
                   "key": "step_change",
                   "value": "changed"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-get-embedder",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 390
+            },
+            "width": 340,
+            "height": 190,
+            "data": {
+              "label": "get_embedder",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-get-embedder",
+              "linkedCanvasName": "get_embedder",
+              "operationSteps": [
+                {
+                  "id": "op-hashing",
+                  "title": "HashingProvider",
+                  "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:58",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-st",
+                  "title": "SentenceTransformersProvider",
+                  "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:60",
+                  "showInDiagram": true,
+                  "order_no": 2
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_embedder"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:48-61"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-get-vectorstore",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 620
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "get_vectorstore",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-get-vectorstore",
+              "linkedCanvasName": "get_vectorstore",
+              "operationSteps": [
+                {
+                  "id": "op-chroma",
+                  "title": "ChromaStore",
+                  "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:68",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_vectorstore"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:64-68"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-sentencetransformersprovider-embed-query",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 840
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "SentenceTransformersProvider.embed_query",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-sentencetransformersprovider-embed-query",
+              "linkedCanvasName": "SentenceTransformersProvider.embed_query",
+              "operationSteps": [
+                {
+                  "id": "op-encode",
+                  "title": "SentenceTransformer.encode",
+                  "description": "encode(QUERY_PREFIX + text, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:37\n→ await sentence-transformers (BAAI/bge-small-en-v1.5) (encode query)\nEvidence: app/providers/embeddings/sentence_transformers_provider.py:37  vector = await asyncio.to_thread(self._model.encode, QUERY_PREFIX + text, normalize_embeddings=True)",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.SentenceTransformersProvider.embed_query"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/embeddings/sentence_transformers_provider.py:35-38"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-hashingprovider-embed-query",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 1060
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "HashingProvider.embed_query",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-hashingprovider-embed-query",
+              "linkedCanvasName": "HashingProvider.embed_query",
+              "operationSteps": [
+                {
+                  "id": "op-embed",
+                  "title": "_embed",
+                  "description": "Hashed bag-of-words vector. app/providers/embeddings/hashing_provider.py:48",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.HashingProvider.embed_query"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/embeddings/hashing_provider.py:46-48"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-chromastore-query",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 1280
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "ChromaStore.query",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-chromastore-query",
+              "linkedCanvasName": "ChromaStore.query",
+              "operationSteps": [
+                {
+                  "id": "op-query",
+                  "title": "_query",
+                  "description": "In a worker thread: collection.query(query_embeddings=[embedding], n_results=top_k, where=where), flattened to RetrievedChunk. app/providers/vectorstore/chroma_store.py:56\n→ await Chroma collection (northwind_docs) (filtered similarity search)\nEvidence: app/providers/vectorstore/chroma_store.py:56  return await asyncio.to_thread(self._query, embedding, top_k, where)",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.ChromaStore.query"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:54-56"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-fakeprovider-stream-chat",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 1500
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "FakeProvider.stream_chat",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-fakeprovider-stream-chat",
+              "linkedCanvasName": "FakeProvider.stream_chat",
+              "operationSteps": [
+                {
+                  "id": "op-split",
+                  "title": "inline: split words",
+                  "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.FakeProvider.stream_chat"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/llm/fake_provider.py:14-27"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-openaiprovider-stream-chat",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 1720
+            },
+            "width": 340,
+            "height": 190,
+            "data": {
+              "label": "OpenAIProvider.stream_chat",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-openaiprovider-stream-chat",
+              "linkedCanvasName": "OpenAIProvider.stream_chat",
+              "operationSteps": [
+                {
+                  "id": "op-create",
+                  "title": "chat.completions.create",
+                  "description": "stream=True request with the system and user messages. app/providers/llm/openai_provider.py:30\n→ http OpenAI API (POST /v1/chat/completions)\nEvidence: app/providers/llm/openai_provider.py:30  stream = await self._client.chat.completions.create(",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-yield",
+                  "title": "inline: yield deltas",
+                  "description": "Yields non-empty delta.content pieces. app/providers/llm/openai_provider.py:38",
+                  "showInDiagram": true,
+                  "order_no": 2
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.OpenAIProvider.stream_chat"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/llm/openai_provider.py:22-38"
+                },
+                {
+                  "key": "step_change",
+                  "value": "added"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-geminiprovider-stream-chat",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 1950
+            },
+            "width": 340,
+            "height": 190,
+            "data": {
+              "label": "GeminiProvider.stream_chat",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-geminiprovider-stream-chat",
+              "linkedCanvasName": "GeminiProvider.stream_chat",
+              "operationSteps": [
+                {
+                  "id": "op-stream",
+                  "title": "aio.models.generate_content_stream",
+                  "description": "Streaming request with system_instruction. app/providers/llm/gemini_provider.py:31\n→ http Gemini API (POST models/{model}:streamGenerateContent)\nEvidence: app/providers/llm/gemini_provider.py:31  stream = await self._client.aio.models.generate_content_stream(",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-yield",
+                  "title": "inline: yield text",
+                  "description": "Yields non-empty chunk.text. app/providers/llm/gemini_provider.py:39",
+                  "showInDiagram": true,
+                  "order_no": 2
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.GeminiProvider.stream_chat"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/llm/gemini_provider.py:23-39"
+                },
+                {
+                  "key": "step_change",
+                  "value": "added"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-get-ocr-provider",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 2180
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "get_ocr_provider",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-get-ocr-provider",
+              "linkedCanvasName": "get_ocr_provider",
+              "operationSteps": [
+                {
+                  "id": "op-easyocr",
+                  "title": "EasyOcrProvider",
+                  "description": "Splits the language list and builds the reader. app/core/dependencies.py:76",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_ocr_provider"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:71-76"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-easyocrprovider-read-text",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 2400
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "EasyOcrProvider.read_text",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-easyocrprovider-read-text",
+              "linkedCanvasName": "EasyOcrProvider.read_text",
+              "operationSteps": [
+                {
+                  "id": "op-read",
+                  "title": "Reader.readtext",
+                  "description": "readtext(png, detail=0, paragraph=True) via asyncio.to_thread. app/providers/ocr/easyocr_provider.py:25\n→ await EasyOCR (OCR)\nEvidence: app/providers/ocr/easyocr_provider.py:25  paragraphs = await asyncio.to_thread(self._reader.readtext, png_bytes, detail=0, paragraph=True)",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.EasyOcrProvider.read_text"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/ocr/easyocr_provider.py:22-26"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-sentencetransformersprovider-embed-documents",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 2620
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "SentenceTransformersProvider.embed_documents",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-sentencetransformersprovider-embed-documents",
+              "linkedCanvasName": "SentenceTransformersProvider.embed_documents",
+              "operationSteps": [
+                {
+                  "id": "op-encode",
+                  "title": "SentenceTransformer.encode",
+                  "description": "encode(texts, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:31\n→ await sentence-transformers (BAAI/bge-small-en-v1.5) (encode)\nEvidence: app/providers/embeddings/sentence_transformers_provider.py:31  vectors = await asyncio.to_thread(self._model.encode, texts, normalize_embeddings=True)",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.SentenceTransformersProvider.embed_documents"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/embeddings/sentence_transformers_provider.py:28-33"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-hashingprovider-embed-documents",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 2840
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "HashingProvider.embed_documents",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-hashingprovider-embed-documents",
+              "linkedCanvasName": "HashingProvider.embed_documents",
+              "operationSteps": [
+                {
+                  "id": "op-embed",
+                  "title": "_embed",
+                  "description": "Hashes each non-stopword into one of 512 slots and normalises. app/providers/embeddings/hashing_provider.py:44",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.HashingProvider.embed_documents"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/embeddings/hashing_provider.py:42-44"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s4-n-be-chromastore-upsert",
+            "type": "diagramNode",
+            "parentId": "s4-c-backend",
+            "position": {
+              "x": 1300,
+              "y": 3060
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "ChromaStore.upsert",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s4-be-chromastore-upsert",
+              "linkedCanvasName": "ChromaStore.upsert",
+              "operationSteps": [
+                {
+                  "id": "op-upsert",
+                  "title": "collection.upsert",
+                  "description": "Chroma upsert via asyncio.to_thread. app/providers/vectorstore/chroma_store.py:32\n→ await Chroma collection (northwind_docs) (upsert)\nEvidence: app/providers/vectorstore/chroma_store.py:32  await asyncio.to_thread(self._collection.upsert, ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.ChromaStore.upsert"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:30-32"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
                 }
               ]
             }
@@ -8708,6 +8849,57 @@
             "targetHandle": "l",
             "type": "smoothstep",
             "label": "sign",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s4-e-be-chat-socket-op-dep-llm",
+            "source": "s4-n-be-chat-socket",
+            "target": "s4-n-be-get-llm-provider",
+            "sourceHandle": "operation:op-dep-llm:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s4-e-be-chat-socket-op-dep-embedder",
+            "source": "s4-n-be-chat-socket",
+            "target": "s4-n-be-get-embedder",
+            "sourceHandle": "operation:op-dep-embedder:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s4-e-be-chat-socket-op-dep-store",
+            "source": "s4-n-be-chat-socket",
+            "target": "s4-n-be-get-vectorstore",
+            "sourceHandle": "operation:op-dep-store:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
             "data": {
               "color": "#333333",
               "lineStyle": "solid",
@@ -9613,7 +9805,7 @@
               "y": 340
             },
             "width": 340,
-            "height": 180,
+            "height": 290,
             "data": {
               "label": "chat_socket",
               "shape": "module",
@@ -9623,11 +9815,32 @@
               "linkedCanvasName": "chat_socket",
               "operationSteps": [
                 {
+                  "id": "op-dep-llm",
+                  "title": "get_llm_provider",
+                  "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-dep-embedder",
+                  "title": "get_embedder",
+                  "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+                  "showInDiagram": true,
+                  "order_no": 2
+                },
+                {
+                  "id": "op-dep-store",
+                  "title": "get_vectorstore",
+                  "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+                  "showInDiagram": true,
+                  "order_no": 3
+                },
+                {
                   "id": "op-delegate",
                   "title": "handle_chat_socket",
                   "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
                   "showInDiagram": true,
-                  "order_no": 1
+                  "order_no": 4
                 }
               ],
               "nodeAttributes": [
@@ -9656,7 +9869,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 40,
-              "y": 560
+              "y": 670
             },
             "width": 340,
             "height": 240,
@@ -9716,7 +9929,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 40,
-              "y": 840
+              "y": 950
             },
             "width": 340,
             "height": 380,
@@ -11402,12 +11615,178 @@
             }
           },
           {
-            "id": "s5-n-be-sentencetransformersprovider-embed-query",
+            "id": "s5-n-be-get-llm-provider",
             "type": "diagramNode",
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
               "y": 60
+            },
+            "width": 340,
+            "height": 290,
+            "data": {
+              "label": "get_llm_provider",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s5-be-get-llm-provider",
+              "linkedCanvasName": "get_llm_provider",
+              "operationSteps": [
+                {
+                  "id": "op-settings",
+                  "title": "get_settings",
+                  "description": "Reads the provider settings. app/core/dependencies.py:32",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-fake",
+                  "title": "FakeProvider",
+                  "description": "if \"fake\": offline echo. app/core/dependencies.py:35",
+                  "showInDiagram": true,
+                  "order_no": 2
+                },
+                {
+                  "id": "op-openai",
+                  "title": "OpenAIProvider",
+                  "description": "if \"openai\": checks the key, builds the client. app/core/dependencies.py:40",
+                  "showInDiagram": true,
+                  "order_no": 3
+                },
+                {
+                  "id": "op-gemini",
+                  "title": "GeminiProvider",
+                  "description": "if \"gemini\": checks the key, builds the client. app/core/dependencies.py:44",
+                  "showInDiagram": true,
+                  "order_no": 4
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_llm_provider"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:24-45"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s5-n-be-get-embedder",
+            "type": "diagramNode",
+            "parentId": "s5-c-backend",
+            "position": {
+              "x": 1720,
+              "y": 390
+            },
+            "width": 340,
+            "height": 190,
+            "data": {
+              "label": "get_embedder",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s5-be-get-embedder",
+              "linkedCanvasName": "get_embedder",
+              "operationSteps": [
+                {
+                  "id": "op-hashing",
+                  "title": "HashingProvider",
+                  "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:58",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-st",
+                  "title": "SentenceTransformersProvider",
+                  "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:60",
+                  "showInDiagram": true,
+                  "order_no": 2
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_embedder"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:48-61"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s5-n-be-get-vectorstore",
+            "type": "diagramNode",
+            "parentId": "s5-c-backend",
+            "position": {
+              "x": 1720,
+              "y": 620
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "get_vectorstore",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s5-be-get-vectorstore",
+              "linkedCanvasName": "get_vectorstore",
+              "operationSteps": [
+                {
+                  "id": "op-chroma",
+                  "title": "ChromaStore",
+                  "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:68",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_vectorstore"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:64-68"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s5-n-be-sentencetransformersprovider-embed-query",
+            "type": "diagramNode",
+            "parentId": "s5-c-backend",
+            "position": {
+              "x": 1720,
+              "y": 840
             },
             "width": 340,
             "height": 180,
@@ -11453,7 +11832,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 280
+              "y": 1060
             },
             "width": 340,
             "height": 180,
@@ -11499,7 +11878,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 500
+              "y": 1280
             },
             "width": 340,
             "height": 180,
@@ -11545,7 +11924,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 720
+              "y": 1500
             },
             "width": 340,
             "height": 240,
@@ -11605,7 +11984,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 1000
+              "y": 1780
             },
             "width": 340,
             "height": 380,
@@ -11686,7 +12065,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 1420
+              "y": 2200
             },
             "width": 340,
             "height": 290,
@@ -11748,111 +12127,12 @@
             }
           },
           {
-            "id": "s5-n-be-get-embedder",
-            "type": "diagramNode",
-            "parentId": "s5-c-backend",
-            "position": {
-              "x": 1720,
-              "y": 1750
-            },
-            "width": 340,
-            "height": 190,
-            "data": {
-              "label": "get_embedder",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s5-be-get-embedder",
-              "linkedCanvasName": "get_embedder",
-              "operationSteps": [
-                {
-                  "id": "op-hashing",
-                  "title": "HashingProvider",
-                  "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:58",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-st",
-                  "title": "SentenceTransformersProvider",
-                  "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:60",
-                  "showInDiagram": true,
-                  "order_no": 2
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_embedder"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:48-61"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s5-n-be-get-vectorstore",
-            "type": "diagramNode",
-            "parentId": "s5-c-backend",
-            "position": {
-              "x": 1720,
-              "y": 1980
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "get_vectorstore",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s5-be-get-vectorstore",
-              "linkedCanvasName": "get_vectorstore",
-              "operationSteps": [
-                {
-                  "id": "op-chroma",
-                  "title": "ChromaStore",
-                  "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:68",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_vectorstore"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:64-68"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
             "id": "s5-n-be-get-ocr-provider",
             "type": "diagramNode",
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 2200
+              "y": 2530
             },
             "width": 340,
             "height": 180,
@@ -11898,7 +12178,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 2420
+              "y": 2750
             },
             "width": 340,
             "height": 180,
@@ -11944,7 +12224,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 2640
+              "y": 2970
             },
             "width": 340,
             "height": 180,
@@ -11990,7 +12270,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 2860
+              "y": 3190
             },
             "width": 340,
             "height": 180,
@@ -12036,7 +12316,7 @@
             "parentId": "s5-c-backend",
             "position": {
               "x": 1720,
-              "y": 3080
+              "y": 3410
             },
             "width": 340,
             "height": 180,
@@ -12068,73 +12348,6 @@
                 {
                   "key": "source",
                   "value": "app/providers/vectorstore/chroma_store.py:30-32"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s5-n-be-get-llm-provider",
-            "type": "diagramNode",
-            "parentId": "s5-c-backend",
-            "position": {
-              "x": 1720,
-              "y": 3300
-            },
-            "width": 340,
-            "height": 290,
-            "data": {
-              "label": "get_llm_provider",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s5-be-get-llm-provider",
-              "linkedCanvasName": "get_llm_provider",
-              "operationSteps": [
-                {
-                  "id": "op-settings",
-                  "title": "get_settings",
-                  "description": "Reads the provider settings. app/core/dependencies.py:32",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-fake",
-                  "title": "FakeProvider",
-                  "description": "if \"fake\": offline echo. app/core/dependencies.py:35",
-                  "showInDiagram": true,
-                  "order_no": 2
-                },
-                {
-                  "id": "op-openai",
-                  "title": "OpenAIProvider",
-                  "description": "if \"openai\": checks the key, builds the client. app/core/dependencies.py:40",
-                  "showInDiagram": true,
-                  "order_no": 3
-                },
-                {
-                  "id": "op-gemini",
-                  "title": "GeminiProvider",
-                  "description": "if \"gemini\": checks the key, builds the client. app/core/dependencies.py:44",
-                  "showInDiagram": true,
-                  "order_no": 4
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_llm_provider"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:24-45"
                 },
                 {
                   "key": "step_change",
@@ -12449,6 +12662,57 @@
             "targetHandle": "l",
             "type": "smoothstep",
             "label": "sign",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s5-e-be-chat-socket-op-dep-llm",
+            "source": "s5-n-be-chat-socket",
+            "target": "s5-n-be-get-llm-provider",
+            "sourceHandle": "operation:op-dep-llm:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s5-e-be-chat-socket-op-dep-embedder",
+            "source": "s5-n-be-chat-socket",
+            "target": "s5-n-be-get-embedder",
+            "sourceHandle": "operation:op-dep-embedder:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s5-e-be-chat-socket-op-dep-store",
+            "source": "s5-n-be-chat-socket",
+            "target": "s5-n-be-get-vectorstore",
+            "sourceHandle": "operation:op-dep-store:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
             "data": {
               "color": "#333333",
               "lineStyle": "solid",
@@ -13760,7 +14024,7 @@
               "y": 340
             },
             "width": 340,
-            "height": 180,
+            "height": 290,
             "data": {
               "label": "chat_socket",
               "shape": "module",
@@ -13770,11 +14034,32 @@
               "linkedCanvasName": "chat_socket",
               "operationSteps": [
                 {
+                  "id": "op-dep-llm",
+                  "title": "get_llm_provider",
+                  "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-dep-embedder",
+                  "title": "get_embedder",
+                  "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+                  "showInDiagram": true,
+                  "order_no": 2
+                },
+                {
+                  "id": "op-dep-store",
+                  "title": "get_vectorstore",
+                  "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+                  "showInDiagram": true,
+                  "order_no": 3
+                },
+                {
                   "id": "op-delegate",
                   "title": "handle_chat_socket",
                   "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
                   "showInDiagram": true,
-                  "order_no": 1
+                  "order_no": 4
                 }
               ],
               "nodeAttributes": [
@@ -13803,7 +14088,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 40,
-              "y": 560
+              "y": 670
             },
             "width": 340,
             "height": 240,
@@ -13863,7 +14148,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 40,
-              "y": 840
+              "y": 950
             },
             "width": 340,
             "height": 380,
@@ -15616,12 +15901,178 @@
             }
           },
           {
-            "id": "s6-n-be-sentencetransformersprovider-embed-query",
+            "id": "s6-n-be-get-llm-provider",
             "type": "diagramNode",
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
               "y": 60
+            },
+            "width": 340,
+            "height": 290,
+            "data": {
+              "label": "get_llm_provider",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s6-be-get-llm-provider",
+              "linkedCanvasName": "get_llm_provider",
+              "operationSteps": [
+                {
+                  "id": "op-settings",
+                  "title": "get_settings",
+                  "description": "Reads the provider settings. app/core/dependencies.py:32",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-fake",
+                  "title": "FakeProvider",
+                  "description": "if \"fake\": offline echo. app/core/dependencies.py:35",
+                  "showInDiagram": true,
+                  "order_no": 2
+                },
+                {
+                  "id": "op-openai",
+                  "title": "OpenAIProvider",
+                  "description": "if \"openai\": checks the key, builds the client. app/core/dependencies.py:40",
+                  "showInDiagram": true,
+                  "order_no": 3
+                },
+                {
+                  "id": "op-gemini",
+                  "title": "GeminiProvider",
+                  "description": "if \"gemini\": checks the key, builds the client. app/core/dependencies.py:44",
+                  "showInDiagram": true,
+                  "order_no": 4
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_llm_provider"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:24-45"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s6-n-be-get-embedder",
+            "type": "diagramNode",
+            "parentId": "s6-c-backend",
+            "position": {
+              "x": 1720,
+              "y": 390
+            },
+            "width": 340,
+            "height": 190,
+            "data": {
+              "label": "get_embedder",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s6-be-get-embedder",
+              "linkedCanvasName": "get_embedder",
+              "operationSteps": [
+                {
+                  "id": "op-hashing",
+                  "title": "HashingProvider",
+                  "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:58",
+                  "showInDiagram": true,
+                  "order_no": 1
+                },
+                {
+                  "id": "op-st",
+                  "title": "SentenceTransformersProvider",
+                  "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:60",
+                  "showInDiagram": true,
+                  "order_no": 2
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_embedder"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:48-61"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s6-n-be-get-vectorstore",
+            "type": "diagramNode",
+            "parentId": "s6-c-backend",
+            "position": {
+              "x": 1720,
+              "y": 620
+            },
+            "width": 340,
+            "height": 180,
+            "data": {
+              "label": "get_vectorstore",
+              "shape": "module",
+              "icon": "process-executor",
+              "color": "#722ed1",
+              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s6-be-get-vectorstore",
+              "linkedCanvasName": "get_vectorstore",
+              "operationSteps": [
+                {
+                  "id": "op-chroma",
+                  "title": "ChromaStore",
+                  "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:68",
+                  "showInDiagram": true,
+                  "order_no": 1
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "crd_id",
+                  "value": "be.get_vectorstore"
+                },
+                {
+                  "key": "layer",
+                  "value": "provider"
+                },
+                {
+                  "key": "source",
+                  "value": "app/core/dependencies.py:64-68"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                }
+              ]
+            }
+          },
+          {
+            "id": "s6-n-be-sentencetransformersprovider-embed-query",
+            "type": "diagramNode",
+            "parentId": "s6-c-backend",
+            "position": {
+              "x": 1720,
+              "y": 840
             },
             "width": 340,
             "height": 180,
@@ -15667,7 +16118,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 280
+              "y": 1060
             },
             "width": 340,
             "height": 180,
@@ -15713,7 +16164,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 500
+              "y": 1280
             },
             "width": 340,
             "height": 180,
@@ -15759,7 +16210,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 720
+              "y": 1500
             },
             "width": 340,
             "height": 240,
@@ -15819,7 +16270,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 1000
+              "y": 1780
             },
             "width": 340,
             "height": 380,
@@ -15900,7 +16351,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 1420
+              "y": 2200
             },
             "width": 340,
             "height": 290,
@@ -15962,111 +16413,12 @@
             }
           },
           {
-            "id": "s6-n-be-get-embedder",
-            "type": "diagramNode",
-            "parentId": "s6-c-backend",
-            "position": {
-              "x": 1720,
-              "y": 1750
-            },
-            "width": 340,
-            "height": 190,
-            "data": {
-              "label": "get_embedder",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s6-be-get-embedder",
-              "linkedCanvasName": "get_embedder",
-              "operationSteps": [
-                {
-                  "id": "op-hashing",
-                  "title": "HashingProvider",
-                  "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:58",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-st",
-                  "title": "SentenceTransformersProvider",
-                  "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:60",
-                  "showInDiagram": true,
-                  "order_no": 2
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_embedder"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:48-61"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s6-n-be-get-vectorstore",
-            "type": "diagramNode",
-            "parentId": "s6-c-backend",
-            "position": {
-              "x": 1720,
-              "y": 1980
-            },
-            "width": 340,
-            "height": 180,
-            "data": {
-              "label": "get_vectorstore",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s6-be-get-vectorstore",
-              "linkedCanvasName": "get_vectorstore",
-              "operationSteps": [
-                {
-                  "id": "op-chroma",
-                  "title": "ChromaStore",
-                  "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:68",
-                  "showInDiagram": true,
-                  "order_no": 1
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_vectorstore"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:64-68"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
             "id": "s6-n-be-get-ocr-provider",
             "type": "diagramNode",
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 2200
+              "y": 2530
             },
             "width": 340,
             "height": 180,
@@ -16112,7 +16464,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 2420
+              "y": 2750
             },
             "width": 340,
             "height": 180,
@@ -16158,7 +16510,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 2640
+              "y": 2970
             },
             "width": 340,
             "height": 180,
@@ -16204,7 +16556,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 2860
+              "y": 3190
             },
             "width": 340,
             "height": 180,
@@ -16250,7 +16602,7 @@
             "parentId": "s6-c-backend",
             "position": {
               "x": 1720,
-              "y": 3080
+              "y": 3410
             },
             "width": 340,
             "height": 180,
@@ -16282,73 +16634,6 @@
                 {
                   "key": "source",
                   "value": "app/providers/vectorstore/chroma_store.py:30-32"
-                },
-                {
-                  "key": "step_change",
-                  "value": "unchanged"
-                }
-              ]
-            }
-          },
-          {
-            "id": "s6-n-be-get-llm-provider",
-            "type": "diagramNode",
-            "parentId": "s6-c-backend",
-            "position": {
-              "x": 1720,
-              "y": 3300
-            },
-            "width": 340,
-            "height": 290,
-            "data": {
-              "label": "get_llm_provider",
-              "shape": "module",
-              "icon": "process-executor",
-              "color": "#722ed1",
-              "linkedCanvasId": "crd-role-aware-knowledge-assistant-s6-be-get-llm-provider",
-              "linkedCanvasName": "get_llm_provider",
-              "operationSteps": [
-                {
-                  "id": "op-settings",
-                  "title": "get_settings",
-                  "description": "Reads the provider settings. app/core/dependencies.py:32",
-                  "showInDiagram": true,
-                  "order_no": 1
-                },
-                {
-                  "id": "op-fake",
-                  "title": "FakeProvider",
-                  "description": "if \"fake\": offline echo. app/core/dependencies.py:35",
-                  "showInDiagram": true,
-                  "order_no": 2
-                },
-                {
-                  "id": "op-openai",
-                  "title": "OpenAIProvider",
-                  "description": "if \"openai\": checks the key, builds the client. app/core/dependencies.py:40",
-                  "showInDiagram": true,
-                  "order_no": 3
-                },
-                {
-                  "id": "op-gemini",
-                  "title": "GeminiProvider",
-                  "description": "if \"gemini\": checks the key, builds the client. app/core/dependencies.py:44",
-                  "showInDiagram": true,
-                  "order_no": 4
-                }
-              ],
-              "nodeAttributes": [
-                {
-                  "key": "crd_id",
-                  "value": "be.get_llm_provider"
-                },
-                {
-                  "key": "layer",
-                  "value": "provider"
-                },
-                {
-                  "key": "source",
-                  "value": "app/core/dependencies.py:24-45"
                 },
                 {
                   "key": "step_change",
@@ -16663,6 +16948,57 @@
             "targetHandle": "l",
             "type": "smoothstep",
             "label": "sign",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s6-e-be-chat-socket-op-dep-llm",
+            "source": "s6-n-be-chat-socket",
+            "target": "s6-n-be-get-llm-provider",
+            "sourceHandle": "operation:op-dep-llm:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s6-e-be-chat-socket-op-dep-embedder",
+            "source": "s6-n-be-chat-socket",
+            "target": "s6-n-be-get-embedder",
+            "sourceHandle": "operation:op-dep-embedder:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
+            "data": {
+              "color": "#333333",
+              "lineStyle": "solid",
+              "markerStartShape": "none",
+              "markerEndShape": "arrowclosed",
+              "pathType": "orthogonal",
+              "strokeWidth": 1
+            }
+          },
+          {
+            "id": "s6-e-be-chat-socket-op-dep-store",
+            "source": "s6-n-be-chat-socket",
+            "target": "s6-n-be-get-vectorstore",
+            "sourceHandle": "operation:op-dep-store:right",
+            "targetHandle": "l",
+            "type": "smoothstep",
+            "label": "injected via Depends",
             "data": {
               "color": "#333333",
               "lineStyle": "solid",
@@ -18161,11 +18497,18 @@
         "validations": [],
         "operation": [
           {
+            "id": "op-dep-llm",
+            "title": "get_llm_provider",
+            "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:19\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:19  async def chat_socket(websocket: WebSocket, settings=Depends(get_settings), llm=Depends(get_llm_provider)) -> None:",
+            "showInDiagram": true,
+            "order_no": 1
+          },
+          {
             "id": "op-delegate",
             "title": "handle_chat_socket",
             "description": "Passes the socket and the dependencies through. app/features/feature_chat/router.py:21\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:21  await handle_chat_socket(websocket, settings, llm)",
             "showInDiagram": true,
-            "order_no": 1
+            "order_no": 2
           }
         ],
         "output": [
@@ -19360,11 +19703,18 @@
         "validations": [],
         "operation": [
           {
+            "id": "op-dep-llm",
+            "title": "get_llm_provider",
+            "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:19\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:19  async def chat_socket(websocket: WebSocket, settings=Depends(get_settings), llm=Depends(get_llm_provider)) -> None:",
+            "showInDiagram": true,
+            "order_no": 1
+          },
+          {
             "id": "op-delegate",
             "title": "handle_chat_socket",
             "description": "Passes the socket and the dependencies through. app/features/feature_chat/router.py:21\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:21  await handle_chat_socket(websocket, settings, llm)",
             "showInDiagram": true,
-            "order_no": 1
+            "order_no": 2
           }
         ],
         "output": [
@@ -23235,11 +23585,32 @@
         "validations": [],
         "operation": [
           {
+            "id": "op-dep-llm",
+            "title": "get_llm_provider",
+            "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+            "showInDiagram": true,
+            "order_no": 1
+          },
+          {
+            "id": "op-dep-embedder",
+            "title": "get_embedder",
+            "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+            "showInDiagram": true,
+            "order_no": 2
+          },
+          {
+            "id": "op-dep-store",
+            "title": "get_vectorstore",
+            "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+            "showInDiagram": true,
+            "order_no": 3
+          },
+          {
             "id": "op-delegate",
             "title": "handle_chat_socket",
             "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
             "showInDiagram": true,
-            "order_no": 1
+            "order_no": 4
           }
         ],
         "output": [
@@ -27741,11 +28112,32 @@
         "validations": [],
         "operation": [
           {
+            "id": "op-dep-llm",
+            "title": "get_llm_provider",
+            "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+            "showInDiagram": true,
+            "order_no": 1
+          },
+          {
+            "id": "op-dep-embedder",
+            "title": "get_embedder",
+            "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+            "showInDiagram": true,
+            "order_no": 2
+          },
+          {
+            "id": "op-dep-store",
+            "title": "get_vectorstore",
+            "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+            "showInDiagram": true,
+            "order_no": 3
+          },
+          {
             "id": "op-delegate",
             "title": "handle_chat_socket",
             "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
             "showInDiagram": true,
-            "order_no": 1
+            "order_no": 4
           }
         ],
         "output": [
@@ -32656,11 +33048,32 @@
         "validations": [],
         "operation": [
           {
+            "id": "op-dep-llm",
+            "title": "get_llm_provider",
+            "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+            "showInDiagram": true,
+            "order_no": 1
+          },
+          {
+            "id": "op-dep-embedder",
+            "title": "get_embedder",
+            "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+            "showInDiagram": true,
+            "order_no": 2
+          },
+          {
+            "id": "op-dep-store",
+            "title": "get_vectorstore",
+            "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+            "showInDiagram": true,
+            "order_no": 3
+          },
+          {
             "id": "op-delegate",
             "title": "handle_chat_socket",
             "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
             "showInDiagram": true,
-            "order_no": 1
+            "order_no": 4
           }
         ],
         "output": [
@@ -38467,11 +38880,32 @@
         "validations": [],
         "operation": [
           {
+            "id": "op-dep-llm",
+            "title": "get_llm_provider",
+            "description": "FastAPI resolves Depends(get_llm_provider) before the door runs: the shared LLM provider. app/features/feature_chat/router.py:22\n→ call get_llm_provider (injected via Depends)\nEvidence: app/features/feature_chat/router.py:22  llm=Depends(get_llm_provider),",
+            "showInDiagram": true,
+            "order_no": 1
+          },
+          {
+            "id": "op-dep-embedder",
+            "title": "get_embedder",
+            "description": "FastAPI resolves Depends(get_embedder): the shared embedding provider. app/features/feature_chat/router.py:23\n→ call get_embedder (injected via Depends)\nEvidence: app/features/feature_chat/router.py:23  embedder=Depends(get_embedder),",
+            "showInDiagram": true,
+            "order_no": 2
+          },
+          {
+            "id": "op-dep-store",
+            "title": "get_vectorstore",
+            "description": "FastAPI resolves Depends(get_vectorstore): the shared Chroma store. app/features/feature_chat/router.py:24\n→ call get_vectorstore (injected via Depends)\nEvidence: app/features/feature_chat/router.py:24  store=Depends(get_vectorstore),",
+            "showInDiagram": true,
+            "order_no": 3
+          },
+          {
             "id": "op-delegate",
             "title": "handle_chat_socket",
             "description": "Passes the socket and the four dependencies through. app/features/feature_chat/router.py:27\n→ await handle_chat_socket (delegates)\nEvidence: app/features/feature_chat/router.py:27  await handle_chat_socket(websocket, settings, llm, embedder, store)",
             "showInDiagram": true,
-            "order_no": 1
+            "order_no": 4
           }
         ],
         "output": [
