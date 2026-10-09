@@ -4,7 +4,7 @@
     "slug": "role-aware-knowledge-assistant",
     "name": "Role-Aware Knowledge Assistant"
   },
-  "current": "inkp",
+  "current": "content",
   "stages": {
     "intro": {
       "status": "done",
@@ -70,12 +70,24 @@
       }
     },
     "inkp": {
-      "status": "in_progress",
-      "summary": "Building role-aware-knowledge-assistant.inkp (tabs STEP-1..STEP-6) from the STEP-N.crd files.",
+      "status": "done",
+      "summary": "role-aware-knowledge-assistant.inkp committed on main: 6 tabs STEP-1..STEP-6 in step order, 211 per-step Process Executor documents, every component of each STEP-N.crd drawn once (10/37/42/47/55/59 nodes) and every relation as one edge (8/38/45/50/63/67), step_change on every node. Checked: valid JSON, unique ids, parents before children, no overlaps, edge endpoints exist, operationSteps equal the linked documents. Not yet verified by an actual import in Simulator.",
       "started_at": "2026-10-09T09:15:58.331Z",
-      "finished_at": null,
-      "updated_by": "api-key:eeeeeeeeeeeeeeeeee"
+      "finished_at": "2026-10-09T09:17:39.393Z",
+      "updated_by": "api-key:eeeeeeeeeeeeeeeeee",
+      "outputs": {
+        "inkp_path": "role-aware-knowledge-assistant.inkp",
+        "inkp_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant/blob/main/role-aware-knowledge-assistant.inkp",
+        "tabs": [
+          "STEP-1",
+          "STEP-2",
+          "STEP-3",
+          "STEP-4",
+          "STEP-5",
+          "STEP-6"
+        ]
+      }
     }
   },
-  "updated_at": "2026-10-09T09:15:58.331Z"
+  "updated_at": "2026-10-09T09:17:39.393Z"
 }
