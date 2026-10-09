@@ -2,10 +2,10 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T09:07:23Z",
+  "generated_at": "2026-10-09T09:12:13Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
-    "revision": "step-06-hardening",
+    "revision": "main",
     "roots": {
       "backend": "app",
       "frontend": "test_client.html"
@@ -16,12 +16,11 @@
     ]
   },
   "step": {
-    "no": 6,
+    "no": "final",
     "of": 6,
-    "title": "Hardening",
-    "branch": "step-06-hardening",
-    "previous": "STEP-5.crd",
-    "removed": []
+    "title": "Final version",
+    "branch": "main",
+    "previous": "STEP-6.crd"
   },
   "flows": [
     {
@@ -571,10 +570,9 @@
         }
       ],
       "attributes": {
-        "is_async": true,
-        "step_note": "each question runs in _answer inside try/except: failures are logged and become one error event while the loop continues; messages over max_message_chars are refused; refused logins are logged"
+        "is_async": true
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "be.verify_jwt",
@@ -4079,7 +4077,7 @@
         "visibility": "private",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "fe.handleConnect",
@@ -4168,7 +4166,7 @@
       "attributes": {
         "is_async": false
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "fe.handleServerEvent",
@@ -4228,7 +4226,7 @@
         "is_async": false,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "fe.handleSend",
@@ -4299,7 +4297,7 @@
       "attributes": {
         "is_async": false
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     }
   ],
   "dependencies": [],
