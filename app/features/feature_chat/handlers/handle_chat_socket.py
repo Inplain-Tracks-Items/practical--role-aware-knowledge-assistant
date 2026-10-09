@@ -2,8 +2,9 @@
 # ICS layer: handler
 # CRD component: be.handle_chat_socket
 # Called by: feature_chat/router.py (the /ws/chat door)
-# Calls: be.verify_jwt, be.service_retrieve_chunks, be.service_stream_answer
-# Step: added in step 1 (Authenticated WebSocket); changed in step 3: retrieves allowed chunks and sends their sources
+# Calls: be.verify_jwt, be.service_retrieve_chunks, be.service_build_prompt, be.service_stream_answer
+# Step: added in step 1 (Authenticated WebSocket); changed in step 3: retrieves allowed chunks and sends their sources;
+#       changed in step 4: builds the prompt from the allowed chunks for the LLM
 
 from fastapi import WebSocket, WebSocketDisconnect  # the socket and the "client went away" signal
 
@@ -20,6 +21,7 @@ from app.features.feature_chat.schemas.chat_schemas import (  # every message sh
     SourcesEvent,
     StreamEvent,
 )
+from app.features.feature_chat.services.service_build_prompt import service_build_prompt  # rules + allowed passages
 from app.features.feature_chat.services.service_retrieve_chunks import service_retrieve_chunks  # access-filtered search
 from app.features.feature_chat.services.service_stream_answer import service_stream_answer  # talks to the LLM
 from app.providers.embeddings.base import EmbeddingProvider  # interfaces of the injected providers
@@ -94,8 +96,10 @@ async def handle_chat_socket(
             # Tell the client which pages were found (deduplicated, in relevance order).
             pages = list(dict.fromkeys((c.source_file, c.page) for c in chunks))
             await websocket.send_json(SourcesEvent(sources=[SourceRef(source_file=f, page=p) for f, p in pages]).model_dump())
-            # Step 5: stream the answer piece by piece, then mark the end with "done".
-            async for piece in service_stream_answer(message.text, llm):
+            # Step 5: build the prompt from those chunks only; the model never sees anything else.
+            system_prompt = service_build_prompt(chunks)
+            # Step 6: stream the answer piece by piece, then mark the end with "done".
+            async for piece in service_stream_answer(system_prompt, message.text, llm):
                 await websocket.send_json(StreamEvent(text=piece).model_dump())
             await websocket.send_json(DoneEvent().model_dump())
     except WebSocketDisconnect:

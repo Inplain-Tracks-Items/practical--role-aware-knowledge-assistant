@@ -17,3 +17,6 @@ sentence-transformers==6.1.0
 pymupdf==1.28.2
 # OCR for scanned pages; downloads its models on first use
 easyocr==1.7.2
+# Step 4 — LLM providers (only the one selected by LLM_PROVIDER is called)
+openai==3.16.2
+google-genai==2.24.0

@@ -2,25 +2,22 @@
 # ICS layer: service
 # CRD component: be.service_stream_answer
 # Called by: feature_chat/handlers/handle_chat_socket.py
-# Calls: be.FakeProvider.stream_chat (through the LLMProvider interface)
-# Step: added in step 1 (Authenticated WebSocket)
+# Calls: the injected LLMProvider (be.FakeProvider.stream_chat, be.OpenAIProvider.stream_chat or be.GeminiProvider.stream_chat)
+# Step: added in step 1 (Authenticated WebSocket); changed in step 4: takes the prompt built from the allowed passages
 
 from typing import AsyncIterator  # the answer is an async stream of text pieces
 
 from app.providers.llm.base import LLMProvider  # interface only; the concrete provider is injected
 
-# Step 1 has no documents yet, so the instructions are fixed. Step 4 replaces this
-# with a prompt built from the passages the user is allowed to see.
-SYSTEM_PROMPT = "You are the Northwind Logistics assistant. Answer briefly and politely."
 
-
-async def service_stream_answer(user_message: str, llm: LLMProvider) -> AsyncIterator[str]:
+async def service_stream_answer(system_prompt: str, user_message: str, llm: LLMProvider) -> AsyncIterator[str]:
     """Yield the answer to user_message piece by piece.
 
+    system_prompt: rules + allowed passages, from service_build_prompt.
     user_message: the question text from the client.
-    llm: the shared provider from core/dependencies.py (FakeProvider unless configured otherwise).
+    llm: the shared provider from core/dependencies.py (chosen by LLM_PROVIDER).
     """
     # Pass each piece through as soon as the provider produces it: the handler forwards
     # it to the socket immediately, which is what makes the answer appear to "type".
-    async for piece in llm.stream_chat(SYSTEM_PROMPT, user_message):
+    async for piece in llm.stream_chat(system_prompt, user_message):
         yield piece

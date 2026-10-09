@@ -2,7 +2,7 @@
 # ICS layer: config
 # Called by: core/dependencies.py, feature_auth (JWT secret), feature_chat handler, feature_ingest and feature_sample_docs CLIs
 # Calls: pydantic-settings (reads the environment)
-# Step: added in step 1 (Authenticated WebSocket); changed in step 2: ingestion settings (docs, embeddings, Chroma, chunking, OCR); changed in step 3: retrieval_top_k
+# Step: added in step 1 (Authenticated WebSocket); changed in step 2: ingestion settings (docs, embeddings, Chroma, chunking, OCR); changed in step 3: retrieval_top_k; changed in step 4: OpenAI and Gemini settings
 
 from functools import lru_cache  # caches get_settings() so .env is parsed once per process
 
@@ -27,8 +27,13 @@ class Settings(BaseSettings):
     # How long a minted demo token stays valid.
     jwt_ttl_minutes: int = 7 * 24 * 60
 
-    # Which LLM answers: "fake" works offline with no key (later steps add "openai" and "gemini").
+    # Which LLM answers: "fake" (offline echo, no key), "openai" or "gemini".
     llm_provider: str = "fake"
+    # Step 4 — only the key of the selected provider is needed.
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.5-flash"
 
     # Step 2 — ingestion.
     # Markdown sources of the Northwind documents and the folder the PDFs are rendered into.

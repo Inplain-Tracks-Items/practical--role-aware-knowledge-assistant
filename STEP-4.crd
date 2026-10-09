@@ -2,10 +2,10 @@
   "crd_version": 1,
   "name": "Role-Aware Knowledge Assistant",
   "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
-  "generated_at": "2026-10-09T06:48:38Z",
+  "generated_at": "2026-10-09T06:52:52Z",
   "source": {
     "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
-    "revision": "step-03-access-aware-retrieval",
+    "revision": "step-04-stream-answers",
     "roots": {
       "backend": "app"
     },
@@ -14,11 +14,11 @@
     ]
   },
   "step": {
-    "no": 3,
+    "no": 4,
     "of": 6,
-    "title": "Access-aware retrieval",
-    "branch": "step-03-access-aware-retrieval",
-    "previous": "STEP-2.crd",
+    "title": "Stream answers",
+    "branch": "step-04-stream-answers",
+    "previous": "STEP-3.crd",
     "removed": []
   },
   "flows": [
@@ -353,10 +353,9 @@
         "is_async": true,
         "endpoint": "WS /ws/chat",
         "decorators": "@router.websocket(\"/ws/chat\")",
-        "step_note": "injects the embedder and the vector store and passes them to the handler",
         "validations_note": "no input checks in code"
       },
-      "step_change": "changed"
+      "step_change": "unchanged"
     },
     {
       "id": "be.handle_chat_socket",
@@ -372,8 +371,8 @@
         "file": "app/features/feature_chat/handlers/handle_chat_socket.py",
         "symbol": "app.features.feature_chat.handlers.handle_chat_socket.handle_chat_socket",
         "lines": [
-          30,
-          103
+          32,
+          107
         ]
       },
       "owner": "feature_chat",
@@ -438,7 +437,7 @@
           "id": "op-accept",
           "title": "websocket.accept",
           "origin": "external",
-          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:46",
+          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:48",
           "show": true,
           "calls": null
         },
@@ -446,7 +445,7 @@
           "id": "op-recv-auth",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:50",
+          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:52",
           "show": true,
           "calls": null
         },
@@ -454,20 +453,20 @@
           "id": "op-verify",
           "title": "verify_jwt",
           "origin": "imported",
-          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:66",
+          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:68",
           "show": true,
           "calls": {
             "component": "be.verify_jwt",
             "type": "call",
             "label": "verify token",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:66  user = verify_jwt(first.token, settings)"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:68  user = verify_jwt(first.token, settings)"
           }
         },
         {
           "id": "op-auth-ok",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:73",
+          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:75",
           "show": true,
           "calls": null
         },
@@ -475,7 +474,7 @@
           "id": "op-recv",
           "title": "websocket.receive_json",
           "origin": "external",
-          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:80",
+          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:82",
           "show": true,
           "calls": null
         },
@@ -483,41 +482,54 @@
           "id": "op-retrieve",
           "title": "service_retrieve_chunks",
           "origin": "imported",
-          "description": "Retrieves up to retrieval_top_k chunks the user may read. app/features/feature_chat/handlers/handle_chat_socket.py:93",
+          "description": "Retrieves up to retrieval_top_k chunks the user may read. app/features/feature_chat/handlers/handle_chat_socket.py:95",
           "show": true,
           "calls": {
             "component": "be.service_retrieve_chunks",
             "type": "await",
             "label": "retrieve allowed chunks",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:93  chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:95  chunks = await service_retrieve_chunks(message.text, user, embedder, store, settings.retrieval_top_k)"
           }
         },
         {
           "id": "op-sources",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends a sources event with the deduplicated (file, page) pairs. app/features/feature_chat/handlers/handle_chat_socket.py:96",
+          "description": "Sends a sources event with the deduplicated (file, page) pairs. app/features/feature_chat/handlers/handle_chat_socket.py:98",
           "show": true,
           "calls": null
+        },
+        {
+          "id": "op-prompt",
+          "title": "service_build_prompt",
+          "origin": "imported",
+          "description": "Builds rules + labelled allowed passages. app/features/feature_chat/handlers/handle_chat_socket.py:100",
+          "show": true,
+          "calls": {
+            "component": "be.service_build_prompt",
+            "type": "call",
+            "label": "build prompt",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:100  system_prompt = service_build_prompt(chunks)"
+          }
         },
         {
           "id": "op-answer",
           "title": "service_stream_answer",
           "origin": "imported",
-          "description": "Streams the answer to the question. app/features/feature_chat/handlers/handle_chat_socket.py:98",
+          "description": "Streams the LLM answer for the prompt and the question. app/features/feature_chat/handlers/handle_chat_socket.py:102",
           "show": true,
           "calls": {
             "component": "be.service_stream_answer",
             "type": "await",
             "label": "stream answer",
-            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:98  async for piece in service_stream_answer(message.text, llm):"
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:102  async for piece in service_stream_answer(system_prompt, message.text, llm):"
           }
         },
         {
           "id": "op-stream",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:99",
+          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:103",
           "show": true,
           "calls": null
         },
@@ -525,7 +537,7 @@
           "id": "op-done",
           "title": "websocket.send_json",
           "origin": "external",
-          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:100",
+          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:104",
           "show": true,
           "calls": null
         }
@@ -564,7 +576,7 @@
       ],
       "attributes": {
         "is_async": true,
-        "step_note": "retrieves the allowed chunks for each question and sends a sources event before the answer"
+        "step_note": "builds the system prompt from the allowed chunks and passes it to the LLM"
       },
       "step_change": "changed"
     },
@@ -657,7 +669,7 @@
       "kind": "function",
       "side": "backend",
       "layer": "service",
-      "description": "Streams the LLM's answer to one question with a fixed system prompt.",
+      "description": "Streams the LLM's answer for a system prompt (rules + allowed passages) and the question.",
       "flows": [
         "chat-session"
       ],
@@ -665,14 +677,19 @@
         "file": "app/features/feature_chat/services/service_stream_answer.py",
         "symbol": "app.features.feature_chat.services.service_stream_answer.service_stream_answer",
         "lines": [
-          17,
-          26
+          13,
+          23
         ]
       },
       "owner": "feature_chat",
       "component_reason": "The only chat code that talks to the LLM provider.",
       "status": "observed",
       "inputs": [
+        {
+          "id": "in-system",
+          "name": "system_prompt",
+          "description": "str, required. From service_build_prompt."
+        },
         {
           "id": "in-msg",
           "name": "user_message",
@@ -681,7 +698,7 @@
         {
           "id": "in-llm",
           "name": "llm",
-          "description": "LLMProvider, required. Injected singleton."
+          "description": "LLMProvider, required. Injected singleton chosen by LLM_PROVIDER."
         }
       ],
       "validations": [],
@@ -690,13 +707,39 @@
           "id": "op-stream",
           "title": "llm.stream_chat",
           "origin": "imported",
-          "description": "Streams pieces for SYSTEM_PROMPT + question and yields each one. app/features/feature_chat/services/service_stream_answer.py:25",
+          "description": "LLM_PROVIDER=fake: offline echo. app/features/feature_chat/services/service_stream_answer.py:22",
           "show": true,
           "calls": {
             "component": "be.FakeProvider.stream_chat",
             "type": "await",
-            "label": "stream_chat (LLM_PROVIDER=fake)",
-            "evidence": "app/features/feature_chat/services/service_stream_answer.py:25  async for piece in llm.stream_chat(SYSTEM_PROMPT, user_message):"
+            "label": "stream_chat (fake)",
+            "evidence": "app/features/feature_chat/services/service_stream_answer.py:22  async for piece in llm.stream_chat(system_prompt, user_message):"
+          }
+        },
+        {
+          "id": "op-stream-openai",
+          "title": "llm.stream_chat",
+          "origin": "imported",
+          "description": "LLM_PROVIDER=openai. app/features/feature_chat/services/service_stream_answer.py:22",
+          "show": true,
+          "calls": {
+            "component": "be.OpenAIProvider.stream_chat",
+            "type": "await",
+            "label": "stream_chat (openai)",
+            "evidence": "app/features/feature_chat/services/service_stream_answer.py:22  async for piece in llm.stream_chat(system_prompt, user_message):"
+          }
+        },
+        {
+          "id": "op-stream-gemini",
+          "title": "llm.stream_chat",
+          "origin": "imported",
+          "description": "LLM_PROVIDER=gemini. app/features/feature_chat/services/service_stream_answer.py:22",
+          "show": true,
+          "calls": {
+            "component": "be.GeminiProvider.stream_chat",
+            "type": "await",
+            "label": "stream_chat (gemini)",
+            "evidence": "app/features/feature_chat/services/service_stream_answer.py:22  async for piece in llm.stream_chat(system_prompt, user_message):"
           }
         }
       ],
@@ -710,9 +753,10 @@
       "attributes": {
         "is_async": true,
         "evidence": "concrete provider chosen by get_llm_provider from LLM_PROVIDER",
+        "step_note": "takes the system prompt from service_build_prompt instead of a fixed one",
         "validations_note": "no input checks in code"
       },
-      "step_change": "unchanged"
+      "step_change": "changed"
     },
     {
       "id": "be.FakeProvider.stream_chat",
@@ -790,8 +834,8 @@
         "file": "app/core/dependencies.py",
         "symbol": "app.core.dependencies.get_llm_provider",
         "lines": [
-          22,
-          34
+          24,
+          45
         ]
       },
       "owner": "core",
@@ -800,15 +844,17 @@
       "inputs": [
         {
           "id": "in-settings",
-          "name": "settings.llm_provider",
-          "description": "str, from LLM_PROVIDER, default \"fake\"."
+          "name": "settings",
+          "description": "llm_provider (default \"fake\"), openai_api_key/openai_model, gemini_api_key/gemini_model."
         }
       ],
       "validations": [
         {
           "input": "in-settings",
           "rules": [
-            "must be a known provider name, else ValueError"
+            "llm_provider in {fake, openai, gemini}, else ValueError",
+            "openai needs openai_api_key, else ValueError(\"LLM_PROVIDER=openai needs OPENAI_API_KEY\")",
+            "gemini needs gemini_api_key, else ValueError(\"LLM_PROVIDER=gemini needs GEMINI_API_KEY\")"
           ]
         }
       ],
@@ -817,7 +863,7 @@
           "id": "op-settings",
           "title": "get_settings",
           "origin": "imported",
-          "description": "Reads the provider name. app/core/dependencies.py:30",
+          "description": "Reads the provider settings. app/core/dependencies.py:32",
           "show": true,
           "calls": null
         },
@@ -825,7 +871,23 @@
           "id": "op-fake",
           "title": "FakeProvider",
           "origin": "imported",
-          "description": "if llm_provider == \"fake\": builds the FakeProvider. app/core/dependencies.py:33",
+          "description": "if \"fake\": offline echo. app/core/dependencies.py:35",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-openai",
+          "title": "OpenAIProvider",
+          "origin": "imported",
+          "description": "if \"openai\": checks the key, builds the client. app/core/dependencies.py:40",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-gemini",
+          "title": "GeminiProvider",
+          "origin": "imported",
+          "description": "if \"gemini\": checks the key, builds the client. app/core/dependencies.py:44",
           "show": true,
           "calls": null
         }
@@ -844,9 +906,10 @@
       ],
       "attributes": {
         "is_async": false,
-        "decorators": "@lru_cache"
+        "decorators": "@lru_cache",
+        "step_note": "adds the openai and gemini providers with an API-key check"
       },
-      "step_change": "unchanged"
+      "step_change": "changed"
     },
     {
       "id": "ext.pyjwt",
@@ -2359,8 +2422,8 @@
         "file": "app/core/dependencies.py",
         "symbol": "app.core.dependencies.get_embedder",
         "lines": [
-          37,
-          50
+          48,
+          61
         ]
       },
       "owner": "core",
@@ -2386,7 +2449,7 @@
           "id": "op-hashing",
           "title": "HashingProvider",
           "origin": "imported",
-          "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:47",
+          "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:58",
           "show": true,
           "calls": null
         },
@@ -2394,7 +2457,7 @@
           "id": "op-st",
           "title": "SentenceTransformersProvider",
           "origin": "imported",
-          "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:49",
+          "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:60",
           "show": true,
           "calls": null
         }
@@ -2432,8 +2495,8 @@
         "file": "app/core/dependencies.py",
         "symbol": "app.core.dependencies.get_vectorstore",
         "lines": [
-          53,
-          57
+          64,
+          68
         ]
       },
       "owner": "core",
@@ -2452,7 +2515,7 @@
           "id": "op-chroma",
           "title": "ChromaStore",
           "origin": "imported",
-          "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:57",
+          "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:68",
           "show": true,
           "calls": null
         }
@@ -2485,8 +2548,8 @@
         "file": "app/core/dependencies.py",
         "symbol": "app.core.dependencies.get_ocr_provider",
         "lines": [
-          60,
-          65
+          71,
+          76
         ]
       },
       "owner": "core",
@@ -2505,7 +2568,7 @@
           "id": "op-easyocr",
           "title": "EasyOcrProvider",
           "origin": "imported",
-          "description": "Splits the language list and builds the reader. app/core/dependencies.py:65",
+          "description": "Splits the language list and builds the reader. app/core/dependencies.py:76",
           "show": true,
           "calls": null
         }
@@ -2757,7 +2820,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.util_build_access_filter",
@@ -2818,7 +2881,7 @@
         "notes": "util (pure); drawn in the service layer",
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.ChromaStore.query",
@@ -2885,7 +2948,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.SentenceTransformersProvider.embed_query",
@@ -2942,7 +3005,7 @@
         "is_async": true,
         "validations_note": "no input checks in code"
       },
-      "step_change": "added"
+      "step_change": "unchanged"
     },
     {
       "id": "be.HashingProvider.embed_query",
@@ -2992,6 +3055,268 @@
       ],
       "attributes": {
         "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.service_build_prompt",
+      "name": "service_build_prompt",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Builds the system prompt: answering rules plus the allowed passages, each labelled \"[file p.N]\" for citation.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/services/service_build_prompt.py",
+        "symbol": "app.features.feature_chat.services.service_build_prompt.service_build_prompt",
+        "lines": [
+          24,
+          32
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Decides exactly what the model sees; the boundary that keeps forbidden text out of the LLM.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-chunks",
+          "name": "chunks",
+          "description": "list[RetrievedChunk]. Allowed passages from service_retrieve_chunks."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-chunks",
+          "rules": [
+            "empty list -> CONTEXT is NO_CONTEXT, so the model says it cannot find the answer"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-label",
+          "title": "inline: label passages",
+          "origin": "inline",
+          "description": "Joins \"[source_file p.page]\\ntext\" blocks, or NO_CONTEXT. app/features/feature_chat/services/service_build_prompt.py:31",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-compose",
+          "title": "inline: compose prompt",
+          "origin": "inline",
+          "description": "SYSTEM_RULES + CONTEXT section. app/features/feature_chat/services/service_build_prompt.py:32",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-prompt",
+          "name": "str",
+          "description": "The system prompt."
+        }
+      ],
+      "attributes": {
+        "is_async": false
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.OpenAIProvider.stream_chat",
+      "name": "OpenAIProvider.stream_chat",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Streams a Chat Completions answer (system + user message) and yields the content deltas.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/llm/openai_provider.py",
+        "symbol": "app.providers.llm.openai_provider.OpenAIProvider.stream_chat",
+        "lines": [
+          22,
+          38
+        ]
+      },
+      "owner": "providers/llm",
+      "component_reason": "Concrete LLMProvider for LLM_PROVIDER=openai.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-system",
+          "name": "system_prompt",
+          "description": "str."
+        },
+        {
+          "id": "in-msg",
+          "name": "user_message",
+          "description": "str."
+        },
+        {
+          "id": "in-tools",
+          "name": "tools",
+          "description": "list[Callable] | None. Not used in this step."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-create",
+          "title": "chat.completions.create",
+          "origin": "external",
+          "description": "stream=True request with the system and user messages. app/providers/llm/openai_provider.py:30",
+          "show": true,
+          "calls": {
+            "component": "ext.openai_api",
+            "type": "http",
+            "label": "POST /v1/chat/completions",
+            "evidence": "app/providers/llm/openai_provider.py:30  stream = await self._client.chat.completions.create("
+          }
+        },
+        {
+          "id": "op-yield",
+          "title": "inline: yield deltas",
+          "origin": "inline",
+          "description": "Yields non-empty delta.content pieces. app/providers/llm/openai_provider.py:38",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-pieces",
+          "name": "AsyncIterator[str]",
+          "description": "Answer pieces."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.GeminiProvider.stream_chat",
+      "name": "GeminiProvider.stream_chat",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Streams a Gemini answer with the system prompt as system_instruction and yields the text parts.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/llm/gemini_provider.py",
+        "symbol": "app.providers.llm.gemini_provider.GeminiProvider.stream_chat",
+        "lines": [
+          23,
+          39
+        ]
+      },
+      "owner": "providers/llm",
+      "component_reason": "Concrete LLMProvider for LLM_PROVIDER=gemini.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-system",
+          "name": "system_prompt",
+          "description": "str."
+        },
+        {
+          "id": "in-msg",
+          "name": "user_message",
+          "description": "str."
+        },
+        {
+          "id": "in-tools",
+          "name": "tools",
+          "description": "list[Callable] | None. Not used in this step."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-stream",
+          "title": "aio.models.generate_content_stream",
+          "origin": "external",
+          "description": "Streaming request with system_instruction. app/providers/llm/gemini_provider.py:31",
+          "show": true,
+          "calls": {
+            "component": "ext.gemini_api",
+            "type": "http",
+            "label": "POST models/{model}:streamGenerateContent",
+            "evidence": "app/providers/llm/gemini_provider.py:31  stream = await self._client.aio.models.generate_content_stream("
+          }
+        },
+        {
+          "id": "op-yield",
+          "title": "inline: yield text",
+          "origin": "inline",
+          "description": "Yields non-empty chunk.text. app/providers/llm/gemini_provider.py:39",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-pieces",
+          "name": "AsyncIterator[str]",
+          "description": "Answer pieces."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.openai_api",
+      "name": "OpenAI API",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "Chat Completions endpoint (needs OPENAI_API_KEY).",
+      "flows": [
+        "chat-session"
+      ],
+      "source": null,
+      "owner": "OpenAI",
+      "component_reason": "External LLM boundary.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.gemini_api",
+      "name": "Gemini API",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "Gemini generateContent streaming endpoint (needs GEMINI_API_KEY).",
+      "flows": [
+        "chat-session"
+      ],
+      "source": null,
+      "owner": "Google",
+      "component_reason": "External LLM boundary.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
         "validations_note": "no input checks in code"
       },
       "step_change": "added"

@@ -3,7 +3,7 @@
 # CRD component: be.get_llm_provider, be.get_embedder, be.get_vectorstore, be.get_ocr_provider
 # Called by: feature_chat/router.py (Depends), feature_ingest/cli.py, tests (dependency_overrides)
 # Calls: core/config.py, providers/*
-# Step: added in step 1 (Authenticated WebSocket); changed in step 2: embedder, vector store and OCR factories
+# Step: added in step 1 (Authenticated WebSocket); changed in step 2: embedder, vector store and OCR factories; changed in step 4: OpenAI and Gemini
 
 from functools import lru_cache  # one instance per process: a provider is never rebuilt per request
 
@@ -15,6 +15,8 @@ from app.providers.vectorstore.base import VectorStore
 from app.providers.embeddings.hashing_provider import HashingProvider  # concrete providers, only referenced here
 from app.providers.embeddings.sentence_transformers_provider import SentenceTransformersProvider
 from app.providers.llm.fake_provider import FakeProvider
+from app.providers.llm.gemini_provider import GeminiProvider
+from app.providers.llm.openai_provider import OpenAIProvider
 from app.providers.ocr.easyocr_provider import EasyOcrProvider
 from app.providers.vectorstore.chroma_store import ChromaStore
 
@@ -25,12 +27,21 @@ def get_llm_provider() -> LLMProvider:
 
     Features only ever see the LLMProvider interface, so switching providers is a
     config change, never a code change in feature_chat.
-    Raises ValueError for an unknown provider name, at the first request that needs it.
+    Raises ValueError for an unknown provider name or a missing API key, at the first request that needs it.
     """
     settings = get_settings()
-    # Step 1 only ships the fake provider; real providers are added in step 4.
+    # Offline echo: the default, so a fresh clone runs without any key.
     if settings.llm_provider == "fake":
         return FakeProvider()
+    # Real providers need their key; failing here gives a clear message instead of a 401 mid-stream.
+    if settings.llm_provider == "openai":
+        if not settings.openai_api_key:
+            raise ValueError("LLM_PROVIDER=openai needs OPENAI_API_KEY")
+        return OpenAIProvider(api_key=settings.openai_api_key, model=settings.openai_model)
+    if settings.llm_provider == "gemini":
+        if not settings.gemini_api_key:
+            raise ValueError("LLM_PROVIDER=gemini needs GEMINI_API_KEY")
+        return GeminiProvider(api_key=settings.gemini_api_key, model=settings.gemini_model)
     raise ValueError(f"unknown LLM_PROVIDER '{settings.llm_provider}'")
 
 
