@@ -1,0 +1,2597 @@
+{
+  "crd_version": 1,
+  "name": "Role-Aware Knowledge Assistant",
+  "description": "Northwind Logistics chat backend: JWT-authenticated WebSocket, PDF ingestion into a tagged Chroma collection, access-aware retrieval, streamed LLM answers and parallel shipment tools.",
+  "generated_at": "2026-10-09T06:44:17Z",
+  "source": {
+    "repo": "github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant",
+    "revision": "step-02-ingest-tagged-chunks",
+    "roots": {
+      "backend": "app"
+    },
+    "stacks": [
+      "python-fastapi"
+    ]
+  },
+  "step": {
+    "no": 2,
+    "of": 6,
+    "title": "Ingest tagged chunks",
+    "branch": "step-02-ingest-tagged-chunks",
+    "previous": "STEP-1.crd",
+    "removed": []
+  },
+  "flows": [
+    {
+      "id": "mint-tokens",
+      "name": "Mint demo tokens",
+      "description": "A developer prints one signed JWT per demo user from the CLI.",
+      "entry": "be.auth_cli"
+    },
+    {
+      "id": "chat-session",
+      "name": "Chat session",
+      "description": "A client opens /ws/chat, authenticates with a JWT and gets streamed answers to its questions.",
+      "entry": "be.chat_socket"
+    },
+    {
+      "id": "build-sample-docs",
+      "name": "Build sample docs",
+      "description": "Render the Northwind Markdown sources into PDFs; the incident review becomes an image-only scan.",
+      "entry": "be.sample_docs_cli"
+    },
+    {
+      "id": "ingest-documents",
+      "name": "Ingest documents",
+      "description": "PDF pages (OCR for scanned ones) become chunks tagged with audience and clearance, embedded and stored in Chroma.",
+      "entry": "be.ingest_cli"
+    }
+  ],
+  "components": [
+    {
+      "id": "be.auth_cli",
+      "name": "main",
+      "kind": "function",
+      "side": "backend",
+      "layer": "door",
+      "description": "CLI door: prints a signed JWT for every demo user, with role and clearance.",
+      "flows": [
+        "mint-tokens"
+      ],
+      "source": {
+        "file": "app/features/feature_auth/cli.py",
+        "symbol": "app.features.feature_auth.cli.main",
+        "lines": [
+          13,
+          20
+        ]
+      },
+      "owner": "feature_auth",
+      "component_reason": "Entry point of the token minting flow (python -m app.features.feature_auth.cli).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings, from get_settings() (reads JWT_SECRET from .env)."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Loads the cached Settings. app/features/feature_auth/cli.py:16",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-mint",
+          "title": "handle_mint_demo_tokens",
+          "origin": "imported",
+          "description": "Mints one token per demo user; iterates the returned entries. app/features/feature_auth/cli.py:16",
+          "show": true,
+          "calls": {
+            "component": "be.handle_mint_demo_tokens",
+            "type": "call",
+            "label": "mint all demo tokens",
+            "evidence": "app/features/feature_auth/cli.py:16  for entry in handle_mint_demo_tokens(get_settings()):"
+          }
+        },
+        {
+          "id": "op-print",
+          "title": "print",
+          "origin": "external",
+          "description": "Prints name, email, role, clearance and the token for each entry. app/features/feature_auth/cli.py:19",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-stdout",
+          "name": "stdout",
+          "description": "One header line and one JWT per demo user. The secret is never printed."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "endpoint": "python -m app.features.feature_auth.cli",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.handle_mint_demo_tokens",
+      "name": "handle_mint_demo_tokens",
+      "kind": "function",
+      "side": "backend",
+      "layer": "handler",
+      "description": "Pairs every demo user from DEMO_USERS with a freshly signed token.",
+      "flows": [
+        "mint-tokens"
+      ],
+      "source": {
+        "file": "app/features/feature_auth/handlers/handle_mint_demo_tokens.py",
+        "symbol": "app.features.feature_auth.handlers.handle_mint_demo_tokens.handle_mint_demo_tokens",
+        "lines": [
+          13,
+          16
+        ]
+      },
+      "owner": "feature_auth",
+      "component_reason": "Orchestrates the minting flow between the CLI door and the signing service.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings, required. Passed through to service_mint_token."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-loop",
+          "title": "inline: for user in DEMO_USERS",
+          "origin": "inline",
+          "description": "Loops over the five demo users from configs/demo_users.py. app/features/feature_auth/handlers/handle_mint_demo_tokens.py:16",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-sign",
+          "title": "service_mint_token",
+          "origin": "imported",
+          "description": "Signs one token per user inside the list comprehension. app/features/feature_auth/handlers/handle_mint_demo_tokens.py:16",
+          "show": true,
+          "calls": {
+            "component": "be.service_mint_token",
+            "type": "call",
+            "label": "sign token",
+            "evidence": "app/features/feature_auth/handlers/handle_mint_demo_tokens.py:16  return [{\"user\": user, \"token\": service_mint_token(user, settings)} for user in DEMO_USERS]"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-list",
+          "name": "list[dict]",
+          "description": "[{\"user\": TokenClaims, \"token\": str}] in DEMO_USERS order."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.service_mint_token",
+      "name": "service_mint_token",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Signs a JWT with the user's claims plus iat and exp.",
+      "flows": [
+        "mint-tokens"
+      ],
+      "source": {
+        "file": "app/features/feature_auth/services/service_mint_token.py",
+        "symbol": "app.features.feature_auth.services.service_mint_token.service_mint_token",
+        "lines": [
+          16,
+          28
+        ]
+      },
+      "owner": "feature_auth",
+      "component_reason": "The single place that creates tokens; counterpart of verify_jwt.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-claims",
+          "name": "claims",
+          "description": "TokenClaims, required. sub, email, name, role, clearance."
+        },
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings, required. jwt_secret, jwt_algorithm, jwt_ttl_minutes."
+        },
+        {
+          "id": "in-ttl",
+          "name": "ttl_seconds",
+          "description": "int | None, optional, default None (= jwt_ttl_minutes * 60). Negative values mint expired tokens for tests."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-now",
+          "title": "time.time",
+          "origin": "external",
+          "description": "Current Unix time, used as iat. app/features/feature_auth/services/service_mint_token.py:24",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-lifetime",
+          "title": "inline: lifetime",
+          "origin": "inline",
+          "description": "ttl_seconds if given, else jwt_ttl_minutes * 60. app/features/feature_auth/services/service_mint_token.py:25",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-payload",
+          "title": "claims.model_dump",
+          "origin": "external",
+          "description": "Claims as a dict plus iat and exp. app/features/feature_auth/services/service_mint_token.py:27",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-encode",
+          "title": "jwt.encode",
+          "origin": "external",
+          "description": "Signs the payload with jwt_secret using jwt_algorithm. app/features/feature_auth/services/service_mint_token.py:28",
+          "show": true,
+          "calls": {
+            "component": "ext.pyjwt",
+            "type": "call",
+            "label": "sign",
+            "evidence": "app/features/feature_auth/services/service_mint_token.py:28  return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-token",
+          "name": "token",
+          "description": "str. The signed JWT."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.chat_socket",
+      "name": "chat_socket",
+      "kind": "route",
+      "side": "backend",
+      "layer": "door",
+      "description": "WebSocket door for /ws/chat: resolves the injected dependencies and delegates to handle_chat_socket.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/router.py",
+        "symbol": "app.features.feature_chat.router.chat_socket",
+        "lines": [
+          18,
+          21
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Entry point of the chat flow; kept as a one-row door.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-ws",
+          "name": "websocket",
+          "description": "WebSocket, from FastAPI."
+        },
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings, injected via Depends(get_settings)."
+        },
+        {
+          "id": "in-llm",
+          "name": "llm",
+          "description": "LLMProvider, injected via Depends(get_llm_provider)."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-delegate",
+          "title": "handle_chat_socket",
+          "origin": "imported",
+          "description": "Passes the socket and the dependencies through. app/features/feature_chat/router.py:21",
+          "show": true,
+          "calls": {
+            "component": "be.handle_chat_socket",
+            "type": "await",
+            "label": "delegates",
+            "evidence": "app/features/feature_chat/router.py:21  await handle_chat_socket(websocket, settings, llm)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-none",
+          "name": "none",
+          "description": "No return value; the handler owns the connection until it closes."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "endpoint": "WS /ws/chat",
+        "decorators": "@router.websocket(\"/ws/chat\")",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.handle_chat_socket",
+      "name": "handle_chat_socket",
+      "kind": "function",
+      "side": "backend",
+      "layer": "handler",
+      "description": "Runs one chat connection: accept, auth handshake with a JWT, then a loop that streams an answer to every question.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/handlers/handle_chat_socket.py",
+        "symbol": "app.features.feature_chat.handlers.handle_chat_socket.handle_chat_socket",
+        "lines": [
+          25,
+          85
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "Orchestrates the whole WebSocket lifecycle; first code with responsibility after the door.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-ws",
+          "name": "websocket",
+          "description": "WebSocket, from the door."
+        },
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings, from the door. Used for JWT verification."
+        },
+        {
+          "id": "in-llm",
+          "name": "llm",
+          "description": "LLMProvider, from the door."
+        },
+        {
+          "id": "in-auth",
+          "name": "message.auth",
+          "description": "First client message {type: \"auth\", token}."
+        },
+        {
+          "id": "in-msg",
+          "name": "message.question",
+          "description": "Later client messages {type: \"message\", text}."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-auth",
+          "rules": [
+            "must parse as ClientMessage, else auth_failed + close",
+            "type == \"auth\" and token present, else auth_failed + close",
+            "verify_jwt must succeed, else auth_failed with the AuthError message + close"
+          ]
+        },
+        {
+          "input": "in-msg",
+          "rules": [
+            "must parse as ClientMessage, else error event \"invalid message\" and the loop continues",
+            "type == \"message\" and text not empty, else ignored"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-accept",
+          "title": "websocket.accept",
+          "origin": "external",
+          "description": "Accepts the connection. app/features/feature_chat/handlers/handle_chat_socket.py:34",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-recv-auth",
+          "title": "websocket.receive_json",
+          "origin": "external",
+          "description": "Reads the first message and parses it as ClientMessage. app/features/feature_chat/handlers/handle_chat_socket.py:38",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-verify",
+          "title": "verify_jwt",
+          "origin": "imported",
+          "description": "Verifies the token; the returned TokenClaims are the connection's identity. app/features/feature_chat/handlers/handle_chat_socket.py:54",
+          "show": true,
+          "calls": {
+            "component": "be.verify_jwt",
+            "type": "call",
+            "label": "verify token",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:54  user = verify_jwt(first.token, settings)"
+          }
+        },
+        {
+          "id": "op-auth-ok",
+          "title": "websocket.send_json",
+          "origin": "external",
+          "description": "Sends auth_success with user_id, name, role, clearance. app/features/feature_chat/handlers/handle_chat_socket.py:61",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-recv",
+          "title": "websocket.receive_json",
+          "origin": "external",
+          "description": "Loop: reads the next message; malformed ones get an error event. app/features/feature_chat/handlers/handle_chat_socket.py:68",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-answer",
+          "title": "service_stream_answer",
+          "origin": "imported",
+          "description": "Streams the answer to the question. app/features/feature_chat/handlers/handle_chat_socket.py:80",
+          "show": true,
+          "calls": {
+            "component": "be.service_stream_answer",
+            "type": "await",
+            "label": "stream answer",
+            "evidence": "app/features/feature_chat/handlers/handle_chat_socket.py:80  async for piece in service_stream_answer(message.text, llm):"
+          }
+        },
+        {
+          "id": "op-stream",
+          "title": "websocket.send_json",
+          "origin": "external",
+          "description": "Sends each piece as a stream event. app/features/feature_chat/handlers/handle_chat_socket.py:81",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-done",
+          "title": "websocket.send_json",
+          "origin": "external",
+          "description": "Sends done after the last piece. app/features/feature_chat/handlers/handle_chat_socket.py:82",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-auth-success",
+          "name": "event.auth_success",
+          "description": "{type, user_id, name, role, clearance}."
+        },
+        {
+          "id": "out-auth-failed",
+          "name": "event.auth_failed",
+          "description": "{type, message}; the socket is closed afterwards."
+        },
+        {
+          "id": "out-stream",
+          "name": "event.stream",
+          "description": "{type, text}, one per answer piece."
+        },
+        {
+          "id": "out-done",
+          "name": "event.done",
+          "description": "{type} after each answer."
+        },
+        {
+          "id": "out-error",
+          "name": "event.error",
+          "description": "{type, message} for a malformed message; the connection stays open."
+        }
+      ],
+      "attributes": {
+        "is_async": true
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.verify_jwt",
+      "name": "verify_jwt",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Verifies a JWT's signature and expiry and validates its claims into TokenClaims.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/core/verify_jwt.py",
+        "symbol": "app.core.verify_jwt.verify_jwt",
+        "lines": [
+          16,
+          40
+        ]
+      },
+      "owner": "core",
+      "component_reason": "The single trust decision for tokens; shared in core/ because it is not owned by one feature.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-token",
+          "name": "token",
+          "description": "str, required. Raw JWT from the auth message."
+        },
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings, required. jwt_secret and jwt_algorithm."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-token",
+          "rules": [
+            "signature valid and algorithm in [jwt_algorithm], else AuthError(\"invalid token\")",
+            "exp in the future, else AuthError(\"token expired\")",
+            "claims match TokenClaims (role in Role, clearance in Clearance), else AuthError(\"token claims are incomplete or unknown\")"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-decode",
+          "title": "jwt.decode",
+          "origin": "external",
+          "description": "Checks signature and expiry with the pinned algorithm. app/core/verify_jwt.py:27",
+          "show": true,
+          "calls": {
+            "component": "ext.pyjwt",
+            "type": "call",
+            "label": "verify",
+            "evidence": "app/core/verify_jwt.py:27  payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])"
+          }
+        },
+        {
+          "id": "op-claims",
+          "title": "TokenClaims",
+          "origin": "imported",
+          "description": "Validates the payload into TokenClaims. app/core/verify_jwt.py:38",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-claims",
+          "name": "TokenClaims",
+          "description": "sub, email, name, role, clearance."
+        },
+        {
+          "id": "out-error",
+          "name": "error.AuthError",
+          "description": "\"token expired\", \"invalid token\" or \"token claims are incomplete or unknown\"."
+        }
+      ],
+      "attributes": {
+        "is_async": false
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.service_stream_answer",
+      "name": "service_stream_answer",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Streams the LLM's answer to one question with a fixed system prompt.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/features/feature_chat/services/service_stream_answer.py",
+        "symbol": "app.features.feature_chat.services.service_stream_answer.service_stream_answer",
+        "lines": [
+          17,
+          26
+        ]
+      },
+      "owner": "feature_chat",
+      "component_reason": "The only chat code that talks to the LLM provider.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-msg",
+          "name": "user_message",
+          "description": "str, required. The question text."
+        },
+        {
+          "id": "in-llm",
+          "name": "llm",
+          "description": "LLMProvider, required. Injected singleton."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-stream",
+          "title": "llm.stream_chat",
+          "origin": "imported",
+          "description": "Streams pieces for SYSTEM_PROMPT + question and yields each one. app/features/feature_chat/services/service_stream_answer.py:25",
+          "show": true,
+          "calls": {
+            "component": "be.FakeProvider.stream_chat",
+            "type": "await",
+            "label": "stream_chat (LLM_PROVIDER=fake)",
+            "evidence": "app/features/feature_chat/services/service_stream_answer.py:25  async for piece in llm.stream_chat(SYSTEM_PROMPT, user_message):"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-pieces",
+          "name": "AsyncIterator[str]",
+          "description": "Answer pieces in order."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "evidence": "concrete provider chosen by get_llm_provider from LLM_PROVIDER",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.FakeProvider.stream_chat",
+      "name": "FakeProvider.stream_chat",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Offline LLM: streams \"Echo: <question>\" word by word.",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/providers/llm/fake_provider.py",
+        "symbol": "app.providers.llm.fake_provider.FakeProvider.stream_chat",
+        "lines": [
+          14,
+          27
+        ]
+      },
+      "owner": "providers/llm",
+      "component_reason": "Concrete LLMProvider used when LLM_PROVIDER=fake; lets the system run and be tested without a key.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-system",
+          "name": "system_prompt",
+          "description": "str. Accepted, not used."
+        },
+        {
+          "id": "in-msg",
+          "name": "user_message",
+          "description": "str. Echoed back."
+        },
+        {
+          "id": "in-tools",
+          "name": "tools",
+          "description": "list[Callable] | None. Accepted, not used in this step."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-split",
+          "title": "inline: split words",
+          "origin": "inline",
+          "description": "Splits \"Echo: <question>\" into words and yields each with a trailing space. app/providers/llm/fake_provider.py:26",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-pieces",
+          "name": "AsyncIterator[str]",
+          "description": "Words of the echo reply."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.get_llm_provider",
+      "name": "get_llm_provider",
+      "kind": "function",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Builds the LLM provider selected by LLM_PROVIDER once per process (lru_cache).",
+      "flows": [
+        "chat-session"
+      ],
+      "source": {
+        "file": "app/core/dependencies.py",
+        "symbol": "app.core.dependencies.get_llm_provider",
+        "lines": [
+          22,
+          34
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Dependency-injection factory: decides which concrete LLM the chat flow talks to.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings.llm_provider",
+          "description": "str, from LLM_PROVIDER, default \"fake\"."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-settings",
+          "rules": [
+            "must be a known provider name, else ValueError"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Reads the provider name. app/core/dependencies.py:30",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-fake",
+          "title": "FakeProvider",
+          "origin": "imported",
+          "description": "if llm_provider == \"fake\": builds the FakeProvider. app/core/dependencies.py:33",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-llm",
+          "name": "LLMProvider",
+          "description": "The shared provider instance."
+        },
+        {
+          "id": "out-error",
+          "name": "error.ValueError",
+          "description": "Unknown LLM_PROVIDER."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "decorators": "@lru_cache"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "ext.pyjwt",
+      "name": "PyJWT",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "JWT library: HMAC signing (encode) and verification of signature and exp (decode).",
+      "flows": [
+        "mint-tokens",
+        "chat-session"
+      ],
+      "source": null,
+      "owner": "third-party",
+      "component_reason": "External boundary of token signing and verification.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "unchanged"
+    },
+    {
+      "id": "be.sample_docs_cli",
+      "name": "main",
+      "kind": "function",
+      "side": "backend",
+      "layer": "door",
+      "description": "CLI door: builds docs/*.pdf from docs_src/*.md and prints one line per file.",
+      "flows": [
+        "build-sample-docs"
+      ],
+      "source": {
+        "file": "app/features/feature_sample_docs/cli.py",
+        "symbol": "app.features.feature_sample_docs.cli.main",
+        "lines": [
+          16,
+          22
+        ]
+      },
+      "owner": "feature_sample_docs",
+      "component_reason": "Entry point of the sample-docs flow (python -m app.features.feature_sample_docs.cli).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings from get_settings(): docs_src_dir, docs_dir."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Reads the folder settings. app/features/feature_sample_docs/cli.py:18",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-build",
+          "title": "handle_build_sample_docs",
+          "origin": "imported",
+          "description": "Runs the async handler with asyncio.run. app/features/feature_sample_docs/cli.py:20",
+          "show": true,
+          "calls": {
+            "component": "be.handle_build_sample_docs",
+            "type": "call",
+            "label": "build PDFs (asyncio.run)",
+            "evidence": "app/features/feature_sample_docs/cli.py:20  built = asyncio.run(handle_build_sample_docs(Path(settings.docs_src_dir), Path(settings.docs_dir)))"
+          }
+        },
+        {
+          "id": "op-print",
+          "title": "print",
+          "origin": "external",
+          "description": "Prints each built PDF, marking the scanned one. app/features/feature_sample_docs/cli.py:22",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-stdout",
+          "name": "stdout",
+          "description": "One line per PDF written."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "endpoint": "python -m app.features.feature_sample_docs.cli",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.handle_build_sample_docs",
+      "name": "handle_build_sample_docs",
+      "kind": "function",
+      "side": "backend",
+      "layer": "handler",
+      "description": "For every entry of SAMPLE_DOCS: read the Markdown, render a text PDF, rasterize it when scanned, write it to docs/.",
+      "flows": [
+        "build-sample-docs"
+      ],
+      "source": {
+        "file": "app/features/feature_sample_docs/handlers/handle_build_sample_docs.py",
+        "symbol": "app.features.feature_sample_docs.handlers.handle_build_sample_docs.handle_build_sample_docs",
+        "lines": [
+          17,
+          36
+        ]
+      },
+      "owner": "feature_sample_docs",
+      "component_reason": "Orchestrates the four single-job services of the sample-docs flow.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-src",
+          "name": "src_dir",
+          "description": "Path, required. Folder with the Markdown sources."
+        },
+        {
+          "id": "in-out",
+          "name": "out_dir",
+          "description": "Path, required. Output folder, created when missing."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-loop",
+          "title": "inline: for doc in SAMPLE_DOCS",
+          "origin": "inline",
+          "description": "Loops over the six configured documents. app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:25",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-read",
+          "title": "service_read_text_file",
+          "origin": "imported",
+          "description": "Loads the Markdown source. app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:27",
+          "show": true,
+          "calls": {
+            "component": "be.service_read_text_file",
+            "type": "await",
+            "label": "read Markdown",
+            "evidence": "app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:27  markdown = await service_read_text_file(src_dir / doc[\"source\"])"
+          }
+        },
+        {
+          "id": "op-render",
+          "title": "service_render_text_pdf",
+          "origin": "imported",
+          "description": "Renders a PDF with a text layer. app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:29",
+          "show": true,
+          "calls": {
+            "component": "be.service_render_text_pdf",
+            "type": "await",
+            "label": "render PDF",
+            "evidence": "app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:29  pdf_bytes = await service_render_text_pdf(markdown)"
+          }
+        },
+        {
+          "id": "op-raster",
+          "title": "service_rasterize_pdf",
+          "origin": "imported",
+          "description": "if doc[\"scanned\"]: replaces every page with its image. app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:32",
+          "show": true,
+          "calls": {
+            "component": "be.service_rasterize_pdf",
+            "type": "await",
+            "label": "if scanned: rasterize",
+            "evidence": "app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:32  pdf_bytes = await service_rasterize_pdf(pdf_bytes)"
+          }
+        },
+        {
+          "id": "op-write",
+          "title": "service_write_file",
+          "origin": "imported",
+          "description": "Writes the PDF to out_dir. app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:34",
+          "show": true,
+          "calls": {
+            "component": "be.service_write_file",
+            "type": "await",
+            "label": "write PDF",
+            "evidence": "app/features/feature_sample_docs/handlers/handle_build_sample_docs.py:34  await service_write_file(out_dir / doc[\"pdf\"], pdf_bytes)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-built",
+          "name": "list[dict]",
+          "description": "[{\"pdf\": name, \"scanned\": bool}] per file written."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_read_text_file",
+      "name": "service_read_text_file",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Reads a UTF-8 text file in a worker thread.",
+      "flows": [
+        "build-sample-docs"
+      ],
+      "source": {
+        "file": "app/features/feature_sample_docs/services/service_read_text_file.py",
+        "symbol": "app.features.feature_sample_docs.services.service_read_text_file.service_read_text_file",
+        "lines": [
+          12,
+          14
+        ]
+      },
+      "owner": "feature_sample_docs",
+      "component_reason": "The file read of the sample-docs flow, kept off the event loop.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-path",
+          "name": "path",
+          "description": "Path, required."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-read",
+          "title": "path.read_text",
+          "origin": "external",
+          "description": "Runs path.read_text(encoding=\"utf-8\") via asyncio.to_thread. app/features/feature_sample_docs/services/service_read_text_file.py:14",
+          "show": true,
+          "calls": {
+            "component": "ext.file_system",
+            "type": "await",
+            "label": "read file",
+            "evidence": "app/features/feature_sample_docs/services/service_read_text_file.py:14  return await asyncio.to_thread(path.read_text, encoding=\"utf-8\")"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-text",
+          "name": "str",
+          "description": "File content."
+        },
+        {
+          "id": "out-error",
+          "name": "error.FileNotFoundError",
+          "description": "Missing source file."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_render_text_pdf",
+      "name": "service_render_text_pdf",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Renders simple Markdown into an A4 PDF with selectable text.",
+      "flows": [
+        "build-sample-docs"
+      ],
+      "source": {
+        "file": "app/features/feature_sample_docs/services/service_render_text_pdf.py",
+        "symbol": "app.features.feature_sample_docs.services.service_render_text_pdf.service_render_text_pdf",
+        "lines": [
+          52,
+          54
+        ]
+      },
+      "owner": "feature_sample_docs",
+      "component_reason": "The Markdown-to-PDF computation, one job.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-md",
+          "name": "markdown",
+          "description": "str, required. # title, ## headings and paragraphs."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-render",
+          "title": "_render",
+          "origin": "private",
+          "description": "In a worker thread: wraps lines per style, paginates and draws text with page.insert_text; returns document.tobytes(). app/features/feature_sample_docs/services/service_render_text_pdf.py:54",
+          "show": true,
+          "calls": {
+            "component": "ext.pymupdf",
+            "type": "await",
+            "label": "draw text pages",
+            "evidence": "app/features/feature_sample_docs/services/service_render_text_pdf.py:54  return await asyncio.to_thread(_render, markdown)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-pdf",
+          "name": "bytes",
+          "description": "The PDF file content."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_rasterize_pdf",
+      "name": "service_rasterize_pdf",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Turns a PDF into an image-only PDF (150 dpi grey-scale), like a scanned paper document.",
+      "flows": [
+        "build-sample-docs"
+      ],
+      "source": {
+        "file": "app/features/feature_sample_docs/services/service_rasterize_pdf.py",
+        "symbol": "app.features.feature_sample_docs.services.service_rasterize_pdf.service_rasterize_pdf",
+        "lines": [
+          29,
+          31
+        ]
+      },
+      "owner": "feature_sample_docs",
+      "component_reason": "Creates the scanned document that forces the OCR path in ingestion.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-pdf",
+          "name": "pdf_bytes",
+          "description": "bytes, required. A text-based PDF."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-raster",
+          "title": "_rasterize",
+          "origin": "private",
+          "description": "In a worker thread: get_pixmap per page, insert_image on a new page of the same size. app/features/feature_sample_docs/services/service_rasterize_pdf.py:31",
+          "show": true,
+          "calls": {
+            "component": "ext.pymupdf",
+            "type": "await",
+            "label": "render pages to images",
+            "evidence": "app/features/feature_sample_docs/services/service_rasterize_pdf.py:31  return await asyncio.to_thread(_rasterize, pdf_bytes)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-pdf",
+          "name": "bytes",
+          "description": "Image-only PDF without a text layer."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_write_file",
+      "name": "service_write_file",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Writes bytes to a file, creating the folder first, in a worker thread.",
+      "flows": [
+        "build-sample-docs"
+      ],
+      "source": {
+        "file": "app/features/feature_sample_docs/services/service_write_file.py",
+        "symbol": "app.features.feature_sample_docs.services.service_write_file.service_write_file",
+        "lines": [
+          18,
+          20
+        ]
+      },
+      "owner": "feature_sample_docs",
+      "component_reason": "The file write of the sample-docs flow, kept off the event loop.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-path",
+          "name": "path",
+          "description": "Path, required."
+        },
+        {
+          "id": "in-data",
+          "name": "data",
+          "description": "bytes, required."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-write",
+          "title": "_write",
+          "origin": "private",
+          "description": "mkdir(parents=True, exist_ok=True) then write_bytes, via asyncio.to_thread. app/features/feature_sample_docs/services/service_write_file.py:20",
+          "show": true,
+          "calls": {
+            "component": "ext.file_system",
+            "type": "await",
+            "label": "write file",
+            "evidence": "app/features/feature_sample_docs/services/service_write_file.py:20  await asyncio.to_thread(_write, path, data)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-none",
+          "name": "none",
+          "description": "No return value; the file is written."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.ingest_cli",
+      "name": "main",
+      "kind": "function",
+      "side": "backend",
+      "layer": "door",
+      "description": "CLI door: wires the shared providers and runs the ingestion pipeline once, then prints a summary.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/cli.py",
+        "symbol": "app.features.feature_ingest.cli.main",
+        "lines": [
+          17,
+          32
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Entry point of the ingestion flow (python -m app.features.feature_ingest.cli).",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "Settings: docs_dir, chunk_size_words, chunk_overlap_words."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-settings",
+          "title": "get_settings",
+          "origin": "imported",
+          "description": "Reads folder and chunking settings. app/features/feature_ingest/cli.py:19",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-embedder",
+          "title": "get_embedder",
+          "origin": "imported",
+          "description": "Shared embedding provider. app/features/feature_ingest/cli.py:25",
+          "show": true,
+          "calls": {
+            "component": "be.get_embedder",
+            "type": "call",
+            "label": "build embedder",
+            "evidence": "app/features/feature_ingest/cli.py:25  embedder=get_embedder(),"
+          }
+        },
+        {
+          "id": "op-store",
+          "title": "get_vectorstore",
+          "origin": "imported",
+          "description": "Shared Chroma store. app/features/feature_ingest/cli.py:26",
+          "show": true,
+          "calls": {
+            "component": "be.get_vectorstore",
+            "type": "call",
+            "label": "open vector store",
+            "evidence": "app/features/feature_ingest/cli.py:26  store=get_vectorstore(),"
+          }
+        },
+        {
+          "id": "op-ocr",
+          "title": "get_ocr_provider",
+          "origin": "imported",
+          "description": "Shared OCR reader. app/features/feature_ingest/cli.py:27",
+          "show": true,
+          "calls": {
+            "component": "be.get_ocr_provider",
+            "type": "call",
+            "label": "build OCR reader",
+            "evidence": "app/features/feature_ingest/cli.py:27  ocr=get_ocr_provider(),"
+          }
+        },
+        {
+          "id": "op-run",
+          "title": "handle_ingest_documents",
+          "origin": "imported",
+          "description": "Runs the pipeline with asyncio.run. app/features/feature_ingest/cli.py:21",
+          "show": true,
+          "calls": {
+            "component": "be.handle_ingest_documents",
+            "type": "call",
+            "label": "ingest (asyncio.run)",
+            "evidence": "app/features/feature_ingest/cli.py:21  summary = asyncio.run(handle_ingest_documents("
+          }
+        },
+        {
+          "id": "op-print",
+          "title": "print",
+          "origin": "external",
+          "description": "Prints PDFs, chunks and OCR pages; lists skipped (unclassified) PDFs. app/features/feature_ingest/cli.py:29",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-stdout",
+          "name": "stdout",
+          "description": "Summary line plus one line per skipped PDF."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "endpoint": "python -m app.features.feature_ingest.cli",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.handle_ingest_documents",
+      "name": "handle_ingest_documents",
+      "kind": "function",
+      "side": "backend",
+      "layer": "handler",
+      "description": "Ingestion pipeline: list PDFs, skip unclassified ones, extract pages, OCR scanned pages, chunk, tag with access metadata, embed in one batch, store.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/handlers/handle_ingest_documents.py",
+        "symbol": "app.features.feature_ingest.handlers.handle_ingest_documents.handle_ingest_documents",
+        "lines": [
+          25,
+          69
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Orchestrates every service of the ingestion flow and applies the fail-closed access rule.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-dir",
+          "name": "docs_dir",
+          "description": "Path, required. Folder with the PDFs."
+        },
+        {
+          "id": "in-size",
+          "name": "chunk_size_words",
+          "description": "int, required. From settings (default 120)."
+        },
+        {
+          "id": "in-overlap",
+          "name": "chunk_overlap_words",
+          "description": "int, required. From settings (default 30)."
+        },
+        {
+          "id": "in-embedder",
+          "name": "embedder",
+          "description": "EmbeddingProvider, injected."
+        },
+        {
+          "id": "in-store",
+          "name": "store",
+          "description": "VectorStore, injected."
+        },
+        {
+          "id": "in-ocr",
+          "name": "ocr",
+          "description": "OcrProvider, injected."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-dir",
+          "rules": [
+            "each PDF must be a key of ACCESS_MAP, else it is skipped and reported (never stored)"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-list",
+          "title": "service_list_pdfs",
+          "origin": "imported",
+          "description": "Lists *.pdf in docs_dir. app/features/feature_ingest/handlers/handle_ingest_documents.py:44",
+          "show": true,
+          "calls": {
+            "component": "be.service_list_pdfs",
+            "type": "await",
+            "label": "list PDFs",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:44  for pdf in await service_list_pdfs(docs_dir):"
+          }
+        },
+        {
+          "id": "op-access",
+          "title": "ACCESS_MAP.get",
+          "origin": "imported",
+          "description": "Looks up audience and clearance; None -> skipped. app/features/feature_ingest/handlers/handle_ingest_documents.py:46",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-extract",
+          "title": "service_extract_pages",
+          "origin": "imported",
+          "description": "Page texts; scanned pages have needs_ocr=True. app/features/feature_ingest/handlers/handle_ingest_documents.py:51",
+          "show": true,
+          "calls": {
+            "component": "be.service_extract_pages",
+            "type": "await",
+            "label": "extract pages",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:51  for page in await service_extract_pages(pdf):"
+          }
+        },
+        {
+          "id": "op-ocr",
+          "title": "service_ocr_page",
+          "origin": "imported",
+          "description": "if page.needs_ocr: reads the page with OCR. app/features/feature_ingest/handlers/handle_ingest_documents.py:55",
+          "show": true,
+          "calls": {
+            "component": "be.service_ocr_page",
+            "type": "await",
+            "label": "if scanned page: OCR",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:55  text = await service_ocr_page(pdf, page.page, ocr)"
+          }
+        },
+        {
+          "id": "op-chunk",
+          "title": "service_chunk_text",
+          "origin": "imported",
+          "description": "Splits the page into overlapping word windows. app/features/feature_ingest/handlers/handle_ingest_documents.py:58",
+          "show": true,
+          "calls": {
+            "component": "be.service_chunk_text",
+            "type": "call",
+            "label": "chunk page",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:58  for index, chunk in enumerate(service_chunk_text(text, chunk_size_words, chunk_overlap_words)):"
+          }
+        },
+        {
+          "id": "op-meta",
+          "title": "util_build_chunk_metadata",
+          "origin": "imported",
+          "description": "Builds citation fields, aud_<role> flags and clearance_rank per chunk. app/features/feature_ingest/handlers/handle_ingest_documents.py:62",
+          "show": true,
+          "calls": {
+            "component": "be.util_build_chunk_metadata",
+            "type": "call",
+            "label": "tag chunk",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:62  metadata=util_build_chunk_metadata(pdf.name, page.page, index, access),"
+          }
+        },
+        {
+          "id": "op-embed",
+          "title": "service_embed_texts",
+          "origin": "imported",
+          "description": "Embeds all chunk texts in one batch. app/features/feature_ingest/handlers/handle_ingest_documents.py:67",
+          "show": true,
+          "calls": {
+            "component": "be.service_embed_texts",
+            "type": "await",
+            "label": "embed chunks",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:67  embeddings = await service_embed_texts([r.text for r in records], embedder)"
+          }
+        },
+        {
+          "id": "op-store",
+          "title": "service_store_chunks",
+          "origin": "imported",
+          "description": "Upserts records with their vectors. app/features/feature_ingest/handlers/handle_ingest_documents.py:68",
+          "show": true,
+          "calls": {
+            "component": "be.service_store_chunks",
+            "type": "await",
+            "label": "store chunks",
+            "evidence": "app/features/feature_ingest/handlers/handle_ingest_documents.py:68  stored = await service_store_chunks(records, embeddings, store)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-summary",
+          "name": "dict",
+          "description": "{ingested: [file], skipped: [file], ocr_pages: int, chunks: int}."
+        }
+      ],
+      "attributes": {
+        "is_async": true
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_list_pdfs",
+      "name": "service_list_pdfs",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Lists the PDFs in the docs folder, sorted by name.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/services/service_list_pdfs.py",
+        "symbol": "app.features.feature_ingest.services.service_list_pdfs.service_list_pdfs",
+        "lines": [
+          12,
+          19
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "The directory listing of the ingestion flow.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-dir",
+          "name": "docs_dir",
+          "description": "Path, required."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-dir",
+          "rules": [
+            "folder missing -> returns []"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-glob",
+          "title": "docs_dir.glob",
+          "origin": "external",
+          "description": "sorted(docs_dir.glob(\"*.pdf\")) in a worker thread. app/features/feature_ingest/services/service_list_pdfs.py:19",
+          "show": true,
+          "calls": {
+            "component": "ext.file_system",
+            "type": "await",
+            "label": "list folder",
+            "evidence": "app/features/feature_ingest/services/service_list_pdfs.py:19  return await asyncio.to_thread(lambda: sorted(docs_dir.glob(\"*.pdf\")))"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-paths",
+          "name": "list[Path]",
+          "description": "PDF paths sorted by name."
+        }
+      ],
+      "attributes": {
+        "is_async": true
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_extract_pages",
+      "name": "service_extract_pages",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Extracts each page's text layer; pages with fewer than 20 characters are flagged needs_ocr.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/services/service_extract_pages.py",
+        "symbol": "app.features.feature_ingest.services.service_extract_pages.service_extract_pages",
+        "lines": [
+          32,
+          34
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Text extraction step; decides which pages need OCR.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-path",
+          "name": "path",
+          "description": "Path, required. A PDF."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-extract",
+          "title": "_extract",
+          "origin": "private",
+          "description": "In a worker thread: page.get_text() per page; len < MIN_TEXT_CHARS -> needs_ocr=True, text=\"\". app/features/feature_ingest/services/service_extract_pages.py:34",
+          "show": true,
+          "calls": {
+            "component": "ext.pymupdf",
+            "type": "await",
+            "label": "read text layer",
+            "evidence": "app/features/feature_ingest/services/service_extract_pages.py:34  return await asyncio.to_thread(_extract, path)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-pages",
+          "name": "list[PageText]",
+          "description": "source_file, 1-based page, text, needs_ocr."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_ocr_page",
+      "name": "service_ocr_page",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Renders one PDF page to a 200 dpi PNG and returns the OCR provider's text for it.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/services/service_ocr_page.py",
+        "symbol": "app.features.feature_ingest.services.service_ocr_page.service_ocr_page",
+        "lines": [
+          25,
+          35
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "The OCR path for scanned pages.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-path",
+          "name": "path",
+          "description": "Path, required."
+        },
+        {
+          "id": "in-page",
+          "name": "page_number",
+          "description": "int, required, 1-based."
+        },
+        {
+          "id": "in-ocr",
+          "name": "ocr",
+          "description": "OcrProvider, injected."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-render",
+          "title": "_render_page_png",
+          "origin": "private",
+          "description": "In a worker thread: page pixmap at OCR_DPI as PNG bytes. app/features/feature_ingest/services/service_ocr_page.py:33",
+          "show": true,
+          "calls": {
+            "component": "ext.pymupdf",
+            "type": "await",
+            "label": "render page",
+            "evidence": "app/features/feature_ingest/services/service_ocr_page.py:33  png = await asyncio.to_thread(_render_page_png, path, page_number)"
+          }
+        },
+        {
+          "id": "op-ocr",
+          "title": "ocr.read_text",
+          "origin": "imported",
+          "description": "Reads text from the PNG. app/features/feature_ingest/services/service_ocr_page.py:35",
+          "show": true,
+          "calls": {
+            "component": "be.EasyOcrProvider.read_text",
+            "type": "await",
+            "label": "read text (EasyOCR)",
+            "evidence": "app/features/feature_ingest/services/service_ocr_page.py:35  return await ocr.read_text(png)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-text",
+          "name": "str",
+          "description": "OCR text of the page."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "evidence": "OcrProvider injected from get_ocr_provider (EasyOcrProvider)",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_chunk_text",
+      "name": "service_chunk_text",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Splits a page into word windows of size_words that overlap by overlap_words.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/services/service_chunk_text.py",
+        "symbol": "app.features.feature_ingest.services.service_chunk_text.service_chunk_text",
+        "lines": [
+          9,
+          31
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "The chunking strategy, a pure computation with its own tests.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-text",
+          "name": "text",
+          "description": "str. One page."
+        },
+        {
+          "id": "in-size",
+          "name": "size_words",
+          "description": "int, e.g. 120."
+        },
+        {
+          "id": "in-overlap",
+          "name": "overlap_words",
+          "description": "int, e.g. 30."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-overlap",
+          "rules": [
+            "overlap_words < size_words, else ValueError"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-split",
+          "title": "text.split",
+          "origin": "external",
+          "description": "Splits into words. app/features/feature_ingest/services/service_chunk_text.py:19",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-short",
+          "title": "inline: short page",
+          "origin": "inline",
+          "description": "<= size_words words -> one chunk (none when empty). app/features/feature_ingest/services/service_chunk_text.py:21",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-windows",
+          "title": "inline: sliding window",
+          "origin": "inline",
+          "description": "Windows start every size-overlap words; stops when a window reaches the end. app/features/feature_ingest/services/service_chunk_text.py:26",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-chunks",
+          "name": "list[str]",
+          "description": "Chunk texts in order."
+        },
+        {
+          "id": "out-error",
+          "name": "error.ValueError",
+          "description": "overlap >= size."
+        }
+      ],
+      "attributes": {
+        "is_async": false
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.util_build_chunk_metadata",
+      "name": "util_build_chunk_metadata",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Builds a chunk's metadata: source_file, page, chunk_index, clearance, clearance_rank and one aud_<role> boolean per role.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/utils/util_build_chunk_metadata.py",
+        "symbol": "app.features.feature_ingest.utils.util_build_chunk_metadata.util_build_chunk_metadata",
+        "lines": [
+          15,
+          34
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "Encodes the access model into the vector store; retrieval filters on exactly these fields.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-file",
+          "name": "source_file",
+          "description": "str."
+        },
+        {
+          "id": "in-page",
+          "name": "page",
+          "description": "int."
+        },
+        {
+          "id": "in-index",
+          "name": "chunk_index",
+          "description": "int."
+        },
+        {
+          "id": "in-access",
+          "name": "access",
+          "description": "DocumentAccess from ACCESS_MAP."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-rank",
+          "title": "CLEARANCE_RANKS",
+          "origin": "imported",
+          "description": "Maps the clearance name to its rank. app/features/feature_ingest/utils/util_build_chunk_metadata.py:28",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-flags",
+          "title": "inline: aud_<role> flags",
+          "origin": "inline",
+          "description": "For every role in Role: aud_<role> = role in access.audience. app/features/feature_ingest/utils/util_build_chunk_metadata.py:33",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-meta",
+          "name": "dict",
+          "description": "Flat metadata with str/int/bool values."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "notes": "util (pure); drawn in the service layer",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_embed_texts",
+      "name": "service_embed_texts",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Embeds all chunk texts in one batch with the injected provider.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/services/service_embed_texts.py",
+        "symbol": "app.features.feature_ingest.services.service_embed_texts.service_embed_texts",
+        "lines": [
+          11,
+          20
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "The only ingestion code that talks to the embedding provider.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-texts",
+          "name": "texts",
+          "description": "list[str], required."
+        },
+        {
+          "id": "in-embedder",
+          "name": "embedder",
+          "description": "EmbeddingProvider, injected."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-texts",
+          "rules": [
+            "empty list -> returns [] without calling the provider"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-embed",
+          "title": "embedder.embed_documents",
+          "origin": "imported",
+          "description": "Embeds the batch (EMBEDDING_PROVIDER=sentence-transformers). app/features/feature_ingest/services/service_embed_texts.py:20",
+          "show": true,
+          "calls": {
+            "component": "be.SentenceTransformersProvider.embed_documents",
+            "type": "await",
+            "label": "embed (sentence-transformers)",
+            "evidence": "app/features/feature_ingest/services/service_embed_texts.py:20  return await embedder.embed_documents(texts)"
+          }
+        },
+        {
+          "id": "op-embed-hashing",
+          "title": "embedder.embed_documents",
+          "origin": "imported",
+          "description": "Same call when EMBEDDING_PROVIDER=hashing (tests, offline demos). app/features/feature_ingest/services/service_embed_texts.py:20",
+          "show": true,
+          "calls": {
+            "component": "be.HashingProvider.embed_documents",
+            "type": "await",
+            "label": "embed (hashing)",
+            "evidence": "app/features/feature_ingest/services/service_embed_texts.py:20  return await embedder.embed_documents(texts)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-vectors",
+          "name": "list[list[float]]",
+          "description": "One vector per text."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "evidence": "EmbeddingProvider injected from get_embedder"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.service_store_chunks",
+      "name": "service_store_chunks",
+      "kind": "function",
+      "side": "backend",
+      "layer": "service",
+      "description": "Upserts chunk records with their vectors and metadata into the vector store.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/features/feature_ingest/services/service_store_chunks.py",
+        "symbol": "app.features.feature_ingest.services.service_store_chunks.service_store_chunks",
+        "lines": [
+          12,
+          29
+        ]
+      },
+      "owner": "feature_ingest",
+      "component_reason": "The single vector-store write of the ingestion flow.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-records",
+          "name": "records",
+          "description": "list[ChunkRecord], required."
+        },
+        {
+          "id": "in-emb",
+          "name": "embeddings",
+          "description": "list[list[float]], required, parallel to records."
+        },
+        {
+          "id": "in-store",
+          "name": "store",
+          "description": "VectorStore, injected."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-emb",
+          "rules": [
+            "len(records) == len(embeddings), else ValueError"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-upsert",
+          "title": "store.upsert",
+          "origin": "imported",
+          "description": "Upserts ids, texts, embeddings, metadatas. app/features/feature_ingest/services/service_store_chunks.py:23",
+          "show": true,
+          "calls": {
+            "component": "be.ChromaStore.upsert",
+            "type": "await",
+            "label": "upsert chunks",
+            "evidence": "app/features/feature_ingest/services/service_store_chunks.py:23  await store.upsert("
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-count",
+          "name": "int",
+          "description": "Number of chunks written."
+        },
+        {
+          "id": "out-error",
+          "name": "error.ValueError",
+          "description": "Length mismatch."
+        }
+      ],
+      "attributes": {
+        "is_async": true
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.SentenceTransformersProvider.embed_documents",
+      "name": "SentenceTransformersProvider.embed_documents",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Encodes passages with the local bge model (normalised vectors) in a worker thread.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/embeddings/sentence_transformers_provider.py",
+        "symbol": "app.providers.embeddings.sentence_transformers_provider.SentenceTransformersProvider.embed_documents",
+        "lines": [
+          28,
+          33
+        ]
+      },
+      "owner": "providers/embeddings",
+      "component_reason": "Default concrete EmbeddingProvider.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-texts",
+          "name": "texts",
+          "description": "list[str]."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-encode",
+          "title": "SentenceTransformer.encode",
+          "origin": "external",
+          "description": "encode(texts, normalize_embeddings=True) via asyncio.to_thread. app/providers/embeddings/sentence_transformers_provider.py:31",
+          "show": true,
+          "calls": {
+            "component": "ext.sentence_transformers",
+            "type": "await",
+            "label": "encode",
+            "evidence": "app/providers/embeddings/sentence_transformers_provider.py:31  vectors = await asyncio.to_thread(self._model.encode, texts, normalize_embeddings=True)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-vectors",
+          "name": "list[list[float]]",
+          "description": "384-dimensional normalised vectors (bge-small)."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.HashingProvider.embed_documents",
+      "name": "HashingProvider.embed_documents",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Offline embedder: hashed bag-of-words vectors without stopwords, normalised.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/embeddings/hashing_provider.py",
+        "symbol": "app.providers.embeddings.hashing_provider.HashingProvider.embed_documents",
+        "lines": [
+          42,
+          44
+        ]
+      },
+      "owner": "providers/embeddings",
+      "component_reason": "Concrete EmbeddingProvider for tests and first runs without a model download.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-texts",
+          "name": "texts",
+          "description": "list[str]."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-embed",
+          "title": "_embed",
+          "origin": "private",
+          "description": "Hashes each non-stopword into one of 512 slots and normalises. app/providers/embeddings/hashing_provider.py:44",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-vectors",
+          "name": "list[list[float]]",
+          "description": "512-dimensional normalised vectors."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.ChromaStore.upsert",
+      "name": "ChromaStore.upsert",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Upserts documents, embeddings and metadata into the cosine-space Chroma collection.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/vectorstore/chroma_store.py",
+        "symbol": "app.providers.vectorstore.chroma_store.ChromaStore.upsert",
+        "lines": [
+          28,
+          30
+        ]
+      },
+      "owner": "providers/vectorstore",
+      "component_reason": "Concrete VectorStore write.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-ids",
+          "name": "ids",
+          "description": "list[str]."
+        },
+        {
+          "id": "in-texts",
+          "name": "texts",
+          "description": "list[str]."
+        },
+        {
+          "id": "in-emb",
+          "name": "embeddings",
+          "description": "list[list[float]]."
+        },
+        {
+          "id": "in-meta",
+          "name": "metadatas",
+          "description": "list[dict]."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-upsert",
+          "title": "collection.upsert",
+          "origin": "external",
+          "description": "Chroma upsert via asyncio.to_thread. app/providers/vectorstore/chroma_store.py:30",
+          "show": true,
+          "calls": {
+            "component": "ext.chroma_db",
+            "type": "await",
+            "label": "upsert",
+            "evidence": "app/providers/vectorstore/chroma_store.py:30  await asyncio.to_thread(self._collection.upsert, ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-none",
+          "name": "none",
+          "description": "No return value; chunks are stored (replaced when the id exists)."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.EasyOcrProvider.read_text",
+      "name": "EasyOcrProvider.read_text",
+      "kind": "method",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Runs EasyOCR on a PNG (paragraph mode) and joins the paragraphs.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/providers/ocr/easyocr_provider.py",
+        "symbol": "app.providers.ocr.easyocr_provider.EasyOcrProvider.read_text",
+        "lines": [
+          22,
+          26
+        ]
+      },
+      "owner": "providers/ocr",
+      "component_reason": "Concrete OcrProvider.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-png",
+          "name": "png_bytes",
+          "description": "bytes. A rendered page."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-read",
+          "title": "Reader.readtext",
+          "origin": "external",
+          "description": "readtext(png, detail=0, paragraph=True) via asyncio.to_thread. app/providers/ocr/easyocr_provider.py:25",
+          "show": true,
+          "calls": {
+            "component": "ext.easyocr",
+            "type": "await",
+            "label": "OCR",
+            "evidence": "app/providers/ocr/easyocr_provider.py:25  paragraphs = await asyncio.to_thread(self._reader.readtext, png_bytes, detail=0, paragraph=True)"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-text",
+          "name": "str",
+          "description": "Paragraphs separated by newlines."
+        }
+      ],
+      "attributes": {
+        "is_async": true,
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.get_embedder",
+      "name": "get_embedder",
+      "kind": "function",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Builds the embedding provider selected by EMBEDDING_PROVIDER once per process.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/core/dependencies.py",
+        "symbol": "app.core.dependencies.get_embedder",
+        "lines": [
+          37,
+          50
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Dependency-injection factory for embeddings; ingestion and chat must share the same model.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings.embedding_provider",
+          "description": "str, \"sentence-transformers\" (default) or \"hashing\"."
+        }
+      ],
+      "validations": [
+        {
+          "input": "in-settings",
+          "rules": [
+            "known provider name, else ValueError"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "op-hashing",
+          "title": "HashingProvider",
+          "origin": "imported",
+          "description": "if \"hashing\": builds HashingProvider. app/core/dependencies.py:47",
+          "show": true,
+          "calls": null
+        },
+        {
+          "id": "op-st",
+          "title": "SentenceTransformersProvider",
+          "origin": "imported",
+          "description": "if \"sentence-transformers\": loads the model. app/core/dependencies.py:49",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-embedder",
+          "name": "EmbeddingProvider",
+          "description": "Shared instance."
+        },
+        {
+          "id": "out-error",
+          "name": "error.ValueError",
+          "description": "Unknown provider."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "decorators": "@lru_cache"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.get_vectorstore",
+      "name": "get_vectorstore",
+      "kind": "function",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Opens the Chroma collection once per process.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/core/dependencies.py",
+        "symbol": "app.core.dependencies.get_vectorstore",
+        "lines": [
+          53,
+          57
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Dependency-injection factory for the vector store.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings",
+          "description": "chroma_path, chroma_collection."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-chroma",
+          "title": "ChromaStore",
+          "origin": "imported",
+          "description": "Builds ChromaStore(path, collection_name). app/core/dependencies.py:57",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-store",
+          "name": "VectorStore",
+          "description": "Shared instance."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "decorators": "@lru_cache",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "be.get_ocr_provider",
+      "name": "get_ocr_provider",
+      "kind": "function",
+      "side": "backend",
+      "layer": "provider",
+      "description": "Builds the EasyOCR reader once per process from OCR_LANGUAGES.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": {
+        "file": "app/core/dependencies.py",
+        "symbol": "app.core.dependencies.get_ocr_provider",
+        "lines": [
+          60,
+          65
+        ]
+      },
+      "owner": "core",
+      "component_reason": "Dependency-injection factory for OCR; only the ingest CLI calls it.",
+      "status": "observed",
+      "inputs": [
+        {
+          "id": "in-settings",
+          "name": "settings.ocr_languages",
+          "description": "str, comma-separated, default \"en\"."
+        }
+      ],
+      "validations": [],
+      "operations": [
+        {
+          "id": "op-easyocr",
+          "title": "EasyOcrProvider",
+          "origin": "imported",
+          "description": "Splits the language list and builds the reader. app/core/dependencies.py:65",
+          "show": true,
+          "calls": null
+        }
+      ],
+      "outputs": [
+        {
+          "id": "out-ocr",
+          "name": "OcrProvider",
+          "description": "Shared instance."
+        }
+      ],
+      "attributes": {
+        "is_async": false,
+        "decorators": "@lru_cache",
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.file_system",
+      "name": "Local file system",
+      "kind": "external",
+      "side": "external",
+      "layer": "data",
+      "description": "docs_src/ (Markdown) and docs/ (PDFs).",
+      "flows": [
+        "build-sample-docs",
+        "ingest-documents"
+      ],
+      "source": null,
+      "owner": "os",
+      "component_reason": "Data boundary of the document files.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.pymupdf",
+      "name": "PyMuPDF",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "PDF library: draws text pages, renders pages to images, extracts text layers.",
+      "flows": [
+        "build-sample-docs",
+        "ingest-documents"
+      ],
+      "source": null,
+      "owner": "third-party",
+      "component_reason": "External boundary of all PDF work.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.chroma_db",
+      "name": "Chroma collection (northwind_docs)",
+      "kind": "external",
+      "side": "external",
+      "layer": "data",
+      "description": "Persistent local Chroma collection with documents, cosine vectors and access metadata.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": null,
+      "owner": "chromadb",
+      "component_reason": "Data boundary of the chunks.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.sentence_transformers",
+      "name": "sentence-transformers (BAAI/bge-small-en-v1.5)",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "Local embedding model runtime.",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": null,
+      "owner": "third-party",
+      "component_reason": "External boundary of embedding inference.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    },
+    {
+      "id": "ext.easyocr",
+      "name": "EasyOCR",
+      "kind": "external",
+      "side": "external",
+      "layer": "external",
+      "description": "Local OCR models (text detection + recognition).",
+      "flows": [
+        "ingest-documents"
+      ],
+      "source": null,
+      "owner": "third-party",
+      "component_reason": "External boundary of OCR.",
+      "status": "observed",
+      "inputs": [],
+      "validations": [],
+      "operations": [],
+      "outputs": [],
+      "attributes": {
+        "validations_note": "no input checks in code"
+      },
+      "step_change": "added"
+    }
+  ],
+  "dependencies": [],
+  "unresolved": []
+}
