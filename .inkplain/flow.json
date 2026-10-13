@@ -92,7 +92,7 @@
     },
     "content": {
       "status": "done",
-      "summary": "Updated current content-development skill to require a github_file immediately after every source-backed component explanation. Revised STEP-1 explanations to remove generic repetitive wording, updated all six System design lessons, and reordered Components lessons. MCP read-back verified all 12 lesson groups (including STEP-2 split) and every github_file follows its explanatory HTML block. No repo source files changed.",
+      "summary": "Created five separate Database (Entity) Relations lessons, each in position 2 of STEP-2..6 and linking to the correct Chroma .erd, main .inkp ERD tab and repo source. Verified per-step item order, tab names and one persistent collection with 13 stored fields.",
       "started_at": "2026-10-09T12:31:03.341Z",
       "finished_at": "2026-10-09T14:07:05.270Z",
       "updated_by": "api-key:for-chatgpt-test-2",
@@ -105,9 +105,26 @@
         "inkp_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant/blob/main/role-aware-knowledge-assistant.inkp",
         "step_items": 26,
         "conclusion_items": 3,
-        "obsolete_items_removed": 81
+        "obsolete_items_removed": 81,
+        "erd_lessons_created": 5,
+        "erd_applicable_steps": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "erd_visualizations": [
+          "STEP-2-ERD",
+          "STEP-3-ERD",
+          "STEP-4-ERD",
+          "STEP-5-ERD",
+          "STEP-6-ERD"
+        ],
+        "erd_item_title": "Database (Entity) Relations",
+        "content_verified": true
       }
     }
   },
-  "updated_at": "2026-10-13T13:56:52.092Z"
+  "updated_at": "2026-10-13T13:56:59.618Z"
 }
