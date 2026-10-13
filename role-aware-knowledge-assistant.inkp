@@ -81495,6 +81495,996 @@
           }
         ]
       }
+    },
+    {
+      "path": "diagram_canvas/erd-role-aware-knowledge-assistant-step-2",
+      "data": {
+        "name": "STEP-2-ERD",
+        "nodes": [
+          {
+            "id": "ent-northwind-docs",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "width": 260,
+            "height": 320,
+            "data": {
+              "label": "northwind_docs",
+              "shape": "entity-table",
+              "color": "#52c41a",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "fields": [
+                {
+                  "id": "northwind-docs-id",
+                  "name": "id",
+                  "type": "str",
+                  "key": "PK"
+                },
+                {
+                  "id": "northwind-docs-document",
+                  "name": "document",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-embedding",
+                  "name": "embedding",
+                  "type": "list[float]",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-source-file",
+                  "name": "source_file",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-page",
+                  "name": "page",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-chunk-index",
+                  "name": "chunk_index",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance",
+                  "name": "clearance",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance-rank",
+                  "name": "clearance_rank",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-driver",
+                  "name": "aud_driver",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-dispatcher",
+                  "name": "aud_dispatcher",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-safety",
+                  "name": "aud_safety",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-sales",
+                  "name": "aud_sales",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-leadership",
+                  "name": "aud_leadership",
+                  "type": "bool",
+                  "key": ""
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "kind",
+                  "value": "collection"
+                },
+                {
+                  "key": "step_change",
+                  "value": "added"
+                },
+                {
+                  "key": "description",
+                  "value": "Chroma PersistentClient collection (configured via chroma_collection, default northwind_docs). One record per indexed document chunk, with its text, embedding and flat citation/access metadata. The step 2 branch introduces this persisted schema."
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:ChromaStore.__init__/upsert; app/features/feature_ingest/utils/util_build_chunk_metadata.py"
+                },
+                {
+                  "key": "field:id",
+                  "value": "str, PK, Stable <file>:p<page>:c<index> chunk ID used for Chroma upsert."
+                },
+                {
+                  "key": "field:document",
+                  "value": "str, Stored chunk text passed in the documents list."
+                },
+                {
+                  "key": "field:embedding",
+                  "value": "list[float], Embedding vector passed to Chroma by the configured embedding provider."
+                },
+                {
+                  "key": "field:source_file",
+                  "value": "str, Original PDF file name for provenance/citations."
+                },
+                {
+                  "key": "field:page",
+                  "value": "int, One-based PDF page number."
+                },
+                {
+                  "key": "field:chunk_index",
+                  "value": "int, Zero-based chunk index within the page."
+                },
+                {
+                  "key": "field:clearance",
+                  "value": "str, Document clearance: public, internal or confidential."
+                },
+                {
+                  "key": "field:clearance_rank",
+                  "value": "int, Stored numeric clearance used for access-filter comparisons."
+                },
+                {
+                  "key": "field:aud_driver",
+                  "value": "bool, Stored audience flag for role driver."
+                },
+                {
+                  "key": "field:aud_dispatcher",
+                  "value": "bool, Stored audience flag for role dispatcher."
+                },
+                {
+                  "key": "field:aud_safety",
+                  "value": "bool, Stored audience flag for role safety."
+                },
+                {
+                  "key": "field:aud_sales",
+                  "value": "bool, Stored audience flag for role sales."
+                },
+                {
+                  "key": "field:aud_leadership",
+                  "value": "bool, Stored audience flag for role leadership."
+                }
+              ],
+              "config": {}
+            }
+          },
+          {
+            "id": "ent-legend",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 380
+            },
+            "width": 260,
+            "height": 120,
+            "data": {
+              "label": "This step's database:\ngreen = added\nPK = primary key · FK = foreign key",
+              "shape": "note",
+              "color": "#d4b106",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "config": {}
+            }
+          }
+        ],
+        "edges": [],
+        "order": 7
+      }
+    },
+    {
+      "path": "diagram_canvas/erd-role-aware-knowledge-assistant-step-3",
+      "data": {
+        "name": "STEP-3-ERD",
+        "nodes": [
+          {
+            "id": "ent-northwind-docs",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "width": 260,
+            "height": 320,
+            "data": {
+              "label": "northwind_docs",
+              "shape": "entity-table",
+              "color": "#8c8c8c",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "fields": [
+                {
+                  "id": "northwind-docs-id",
+                  "name": "id",
+                  "type": "str",
+                  "key": "PK"
+                },
+                {
+                  "id": "northwind-docs-document",
+                  "name": "document",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-embedding",
+                  "name": "embedding",
+                  "type": "list[float]",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-source-file",
+                  "name": "source_file",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-page",
+                  "name": "page",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-chunk-index",
+                  "name": "chunk_index",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance",
+                  "name": "clearance",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance-rank",
+                  "name": "clearance_rank",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-driver",
+                  "name": "aud_driver",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-dispatcher",
+                  "name": "aud_dispatcher",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-safety",
+                  "name": "aud_safety",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-sales",
+                  "name": "aud_sales",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-leadership",
+                  "name": "aud_leadership",
+                  "type": "bool",
+                  "key": ""
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "kind",
+                  "value": "collection"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                },
+                {
+                  "key": "description",
+                  "value": "Chroma PersistentClient collection (configured via chroma_collection, default northwind_docs). One record per indexed document chunk, with its text, embedding and flat citation/access metadata. The step 3 branch retains this persisted schema."
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:ChromaStore.__init__/upsert; app/features/feature_ingest/utils/util_build_chunk_metadata.py"
+                },
+                {
+                  "key": "field:id",
+                  "value": "str, PK, Stable <file>:p<page>:c<index> chunk ID used for Chroma upsert."
+                },
+                {
+                  "key": "field:document",
+                  "value": "str, Stored chunk text passed in the documents list."
+                },
+                {
+                  "key": "field:embedding",
+                  "value": "list[float], Embedding vector passed to Chroma by the configured embedding provider."
+                },
+                {
+                  "key": "field:source_file",
+                  "value": "str, Original PDF file name for provenance/citations."
+                },
+                {
+                  "key": "field:page",
+                  "value": "int, One-based PDF page number."
+                },
+                {
+                  "key": "field:chunk_index",
+                  "value": "int, Zero-based chunk index within the page."
+                },
+                {
+                  "key": "field:clearance",
+                  "value": "str, Document clearance: public, internal or confidential."
+                },
+                {
+                  "key": "field:clearance_rank",
+                  "value": "int, Stored numeric clearance used for access-filter comparisons."
+                },
+                {
+                  "key": "field:aud_driver",
+                  "value": "bool, Stored audience flag for role driver."
+                },
+                {
+                  "key": "field:aud_dispatcher",
+                  "value": "bool, Stored audience flag for role dispatcher."
+                },
+                {
+                  "key": "field:aud_safety",
+                  "value": "bool, Stored audience flag for role safety."
+                },
+                {
+                  "key": "field:aud_sales",
+                  "value": "bool, Stored audience flag for role sales."
+                },
+                {
+                  "key": "field:aud_leadership",
+                  "value": "bool, Stored audience flag for role leadership."
+                }
+              ],
+              "config": {}
+            }
+          },
+          {
+            "id": "ent-legend",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 380
+            },
+            "width": 260,
+            "height": 120,
+            "data": {
+              "label": "This step's database:\ngrey = unchanged\nPK = primary key · FK = foreign key",
+              "shape": "note",
+              "color": "#d4b106",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "config": {}
+            }
+          }
+        ],
+        "edges": [],
+        "order": 8
+      }
+    },
+    {
+      "path": "diagram_canvas/erd-role-aware-knowledge-assistant-step-4",
+      "data": {
+        "name": "STEP-4-ERD",
+        "nodes": [
+          {
+            "id": "ent-northwind-docs",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "width": 260,
+            "height": 320,
+            "data": {
+              "label": "northwind_docs",
+              "shape": "entity-table",
+              "color": "#8c8c8c",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "fields": [
+                {
+                  "id": "northwind-docs-id",
+                  "name": "id",
+                  "type": "str",
+                  "key": "PK"
+                },
+                {
+                  "id": "northwind-docs-document",
+                  "name": "document",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-embedding",
+                  "name": "embedding",
+                  "type": "list[float]",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-source-file",
+                  "name": "source_file",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-page",
+                  "name": "page",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-chunk-index",
+                  "name": "chunk_index",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance",
+                  "name": "clearance",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance-rank",
+                  "name": "clearance_rank",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-driver",
+                  "name": "aud_driver",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-dispatcher",
+                  "name": "aud_dispatcher",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-safety",
+                  "name": "aud_safety",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-sales",
+                  "name": "aud_sales",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-leadership",
+                  "name": "aud_leadership",
+                  "type": "bool",
+                  "key": ""
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "kind",
+                  "value": "collection"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                },
+                {
+                  "key": "description",
+                  "value": "Chroma PersistentClient collection (configured via chroma_collection, default northwind_docs). One record per indexed document chunk, with its text, embedding and flat citation/access metadata. The step 4 branch retains this persisted schema."
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:ChromaStore.__init__/upsert; app/features/feature_ingest/utils/util_build_chunk_metadata.py"
+                },
+                {
+                  "key": "field:id",
+                  "value": "str, PK, Stable <file>:p<page>:c<index> chunk ID used for Chroma upsert."
+                },
+                {
+                  "key": "field:document",
+                  "value": "str, Stored chunk text passed in the documents list."
+                },
+                {
+                  "key": "field:embedding",
+                  "value": "list[float], Embedding vector passed to Chroma by the configured embedding provider."
+                },
+                {
+                  "key": "field:source_file",
+                  "value": "str, Original PDF file name for provenance/citations."
+                },
+                {
+                  "key": "field:page",
+                  "value": "int, One-based PDF page number."
+                },
+                {
+                  "key": "field:chunk_index",
+                  "value": "int, Zero-based chunk index within the page."
+                },
+                {
+                  "key": "field:clearance",
+                  "value": "str, Document clearance: public, internal or confidential."
+                },
+                {
+                  "key": "field:clearance_rank",
+                  "value": "int, Stored numeric clearance used for access-filter comparisons."
+                },
+                {
+                  "key": "field:aud_driver",
+                  "value": "bool, Stored audience flag for role driver."
+                },
+                {
+                  "key": "field:aud_dispatcher",
+                  "value": "bool, Stored audience flag for role dispatcher."
+                },
+                {
+                  "key": "field:aud_safety",
+                  "value": "bool, Stored audience flag for role safety."
+                },
+                {
+                  "key": "field:aud_sales",
+                  "value": "bool, Stored audience flag for role sales."
+                },
+                {
+                  "key": "field:aud_leadership",
+                  "value": "bool, Stored audience flag for role leadership."
+                }
+              ],
+              "config": {}
+            }
+          },
+          {
+            "id": "ent-legend",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 380
+            },
+            "width": 260,
+            "height": 120,
+            "data": {
+              "label": "This step's database:\ngrey = unchanged\nPK = primary key · FK = foreign key",
+              "shape": "note",
+              "color": "#d4b106",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "config": {}
+            }
+          }
+        ],
+        "edges": [],
+        "order": 9
+      }
+    },
+    {
+      "path": "diagram_canvas/erd-role-aware-knowledge-assistant-step-5",
+      "data": {
+        "name": "STEP-5-ERD",
+        "nodes": [
+          {
+            "id": "ent-northwind-docs",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "width": 260,
+            "height": 320,
+            "data": {
+              "label": "northwind_docs",
+              "shape": "entity-table",
+              "color": "#8c8c8c",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "fields": [
+                {
+                  "id": "northwind-docs-id",
+                  "name": "id",
+                  "type": "str",
+                  "key": "PK"
+                },
+                {
+                  "id": "northwind-docs-document",
+                  "name": "document",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-embedding",
+                  "name": "embedding",
+                  "type": "list[float]",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-source-file",
+                  "name": "source_file",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-page",
+                  "name": "page",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-chunk-index",
+                  "name": "chunk_index",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance",
+                  "name": "clearance",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance-rank",
+                  "name": "clearance_rank",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-driver",
+                  "name": "aud_driver",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-dispatcher",
+                  "name": "aud_dispatcher",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-safety",
+                  "name": "aud_safety",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-sales",
+                  "name": "aud_sales",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-leadership",
+                  "name": "aud_leadership",
+                  "type": "bool",
+                  "key": ""
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "kind",
+                  "value": "collection"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                },
+                {
+                  "key": "description",
+                  "value": "Chroma PersistentClient collection (configured via chroma_collection, default northwind_docs). One record per indexed document chunk, with its text, embedding and flat citation/access metadata. The step 5 branch retains this persisted schema."
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:ChromaStore.__init__/upsert; app/features/feature_ingest/utils/util_build_chunk_metadata.py"
+                },
+                {
+                  "key": "field:id",
+                  "value": "str, PK, Stable <file>:p<page>:c<index> chunk ID used for Chroma upsert."
+                },
+                {
+                  "key": "field:document",
+                  "value": "str, Stored chunk text passed in the documents list."
+                },
+                {
+                  "key": "field:embedding",
+                  "value": "list[float], Embedding vector passed to Chroma by the configured embedding provider."
+                },
+                {
+                  "key": "field:source_file",
+                  "value": "str, Original PDF file name for provenance/citations."
+                },
+                {
+                  "key": "field:page",
+                  "value": "int, One-based PDF page number."
+                },
+                {
+                  "key": "field:chunk_index",
+                  "value": "int, Zero-based chunk index within the page."
+                },
+                {
+                  "key": "field:clearance",
+                  "value": "str, Document clearance: public, internal or confidential."
+                },
+                {
+                  "key": "field:clearance_rank",
+                  "value": "int, Stored numeric clearance used for access-filter comparisons."
+                },
+                {
+                  "key": "field:aud_driver",
+                  "value": "bool, Stored audience flag for role driver."
+                },
+                {
+                  "key": "field:aud_dispatcher",
+                  "value": "bool, Stored audience flag for role dispatcher."
+                },
+                {
+                  "key": "field:aud_safety",
+                  "value": "bool, Stored audience flag for role safety."
+                },
+                {
+                  "key": "field:aud_sales",
+                  "value": "bool, Stored audience flag for role sales."
+                },
+                {
+                  "key": "field:aud_leadership",
+                  "value": "bool, Stored audience flag for role leadership."
+                }
+              ],
+              "config": {}
+            }
+          },
+          {
+            "id": "ent-legend",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 380
+            },
+            "width": 260,
+            "height": 120,
+            "data": {
+              "label": "This step's database:\ngrey = unchanged\nPK = primary key · FK = foreign key",
+              "shape": "note",
+              "color": "#d4b106",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "config": {}
+            }
+          }
+        ],
+        "edges": [],
+        "order": 10
+      }
+    },
+    {
+      "path": "diagram_canvas/erd-role-aware-knowledge-assistant-step-6",
+      "data": {
+        "name": "STEP-6-ERD",
+        "nodes": [
+          {
+            "id": "ent-northwind-docs",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "width": 260,
+            "height": 320,
+            "data": {
+              "label": "northwind_docs",
+              "shape": "entity-table",
+              "color": "#8c8c8c",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "fields": [
+                {
+                  "id": "northwind-docs-id",
+                  "name": "id",
+                  "type": "str",
+                  "key": "PK"
+                },
+                {
+                  "id": "northwind-docs-document",
+                  "name": "document",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-embedding",
+                  "name": "embedding",
+                  "type": "list[float]",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-source-file",
+                  "name": "source_file",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-page",
+                  "name": "page",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-chunk-index",
+                  "name": "chunk_index",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance",
+                  "name": "clearance",
+                  "type": "str",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-clearance-rank",
+                  "name": "clearance_rank",
+                  "type": "int",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-driver",
+                  "name": "aud_driver",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-dispatcher",
+                  "name": "aud_dispatcher",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-safety",
+                  "name": "aud_safety",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-sales",
+                  "name": "aud_sales",
+                  "type": "bool",
+                  "key": ""
+                },
+                {
+                  "id": "northwind-docs-aud-leadership",
+                  "name": "aud_leadership",
+                  "type": "bool",
+                  "key": ""
+                }
+              ],
+              "nodeAttributes": [
+                {
+                  "key": "kind",
+                  "value": "collection"
+                },
+                {
+                  "key": "step_change",
+                  "value": "unchanged"
+                },
+                {
+                  "key": "description",
+                  "value": "Chroma PersistentClient collection (configured via chroma_collection, default northwind_docs). One record per indexed document chunk, with its text, embedding and flat citation/access metadata. The step 6 branch retains this persisted schema."
+                },
+                {
+                  "key": "source",
+                  "value": "app/providers/vectorstore/chroma_store.py:ChromaStore.__init__/upsert; app/features/feature_ingest/utils/util_build_chunk_metadata.py"
+                },
+                {
+                  "key": "field:id",
+                  "value": "str, PK, Stable <file>:p<page>:c<index> chunk ID used for Chroma upsert."
+                },
+                {
+                  "key": "field:document",
+                  "value": "str, Stored chunk text passed in the documents list."
+                },
+                {
+                  "key": "field:embedding",
+                  "value": "list[float], Embedding vector passed to Chroma by the configured embedding provider."
+                },
+                {
+                  "key": "field:source_file",
+                  "value": "str, Original PDF file name for provenance/citations."
+                },
+                {
+                  "key": "field:page",
+                  "value": "int, One-based PDF page number."
+                },
+                {
+                  "key": "field:chunk_index",
+                  "value": "int, Zero-based chunk index within the page."
+                },
+                {
+                  "key": "field:clearance",
+                  "value": "str, Document clearance: public, internal or confidential."
+                },
+                {
+                  "key": "field:clearance_rank",
+                  "value": "int, Stored numeric clearance used for access-filter comparisons."
+                },
+                {
+                  "key": "field:aud_driver",
+                  "value": "bool, Stored audience flag for role driver."
+                },
+                {
+                  "key": "field:aud_dispatcher",
+                  "value": "bool, Stored audience flag for role dispatcher."
+                },
+                {
+                  "key": "field:aud_safety",
+                  "value": "bool, Stored audience flag for role safety."
+                },
+                {
+                  "key": "field:aud_sales",
+                  "value": "bool, Stored audience flag for role sales."
+                },
+                {
+                  "key": "field:aud_leadership",
+                  "value": "bool, Stored audience flag for role leadership."
+                }
+              ],
+              "config": {}
+            }
+          },
+          {
+            "id": "ent-legend",
+            "type": "diagramNode",
+            "position": {
+              "x": 0,
+              "y": 380
+            },
+            "width": 260,
+            "height": 120,
+            "data": {
+              "label": "This step's database:\ngrey = unchanged\nPK = primary key · FK = foreign key",
+              "shape": "note",
+              "color": "#d4b106",
+              "emoji": "",
+              "icon": "",
+              "body": "",
+              "config": {}
+            }
+          }
+        ],
+        "edges": [],
+        "order": 11
+      }
     }
   ]
 }
