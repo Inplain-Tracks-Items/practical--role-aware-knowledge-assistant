@@ -1,0 +1,92 @@
+{
+  "erd_version": 1,
+  "name": "role-aware-knowledge-assistant",
+  "step": 6,
+  "engine": "chromadb",
+  "generated_from": [
+    "app/providers/vectorstore/chroma_store.py",
+    "app/features/feature_ingest/services/service_store_chunks.py",
+    "app/features/feature_ingest/utils/util_build_chunk_metadata.py",
+    "app/features/feature_ingest/schemas/ingest_schemas.py",
+    "app/core/role.py"
+  ],
+  "entities": [
+    {
+      "id": "northwind_docs",
+      "name": "northwind_docs",
+      "kind": "collection",
+      "step_change": "unchanged",
+      "description": "Chroma PersistentClient collection (configured via chroma_collection, default northwind_docs). One record per indexed document chunk, with its text, embedding and flat citation/access metadata. The step 6 branch retains this persisted schema.",
+      "source": "app/providers/vectorstore/chroma_store.py:ChromaStore.__init__/upsert; app/features/feature_ingest/utils/util_build_chunk_metadata.py",
+      "fields": [
+        {
+          "name": "id",
+          "type": "str",
+          "key": "PK",
+          "description": "Stable <file>:p<page>:c<index> chunk ID used for Chroma upsert."
+        },
+        {
+          "name": "document",
+          "type": "str",
+          "description": "Stored chunk text passed in the documents list."
+        },
+        {
+          "name": "embedding",
+          "type": "list[float]",
+          "description": "Embedding vector passed to Chroma by the configured embedding provider."
+        },
+        {
+          "name": "source_file",
+          "type": "str",
+          "description": "Original PDF file name for provenance/citations."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "description": "One-based PDF page number."
+        },
+        {
+          "name": "chunk_index",
+          "type": "int",
+          "description": "Zero-based chunk index within the page."
+        },
+        {
+          "name": "clearance",
+          "type": "str",
+          "description": "Document clearance: public, internal or confidential."
+        },
+        {
+          "name": "clearance_rank",
+          "type": "int",
+          "description": "Stored numeric clearance used for access-filter comparisons."
+        },
+        {
+          "name": "aud_driver",
+          "type": "bool",
+          "description": "Stored audience flag for role driver."
+        },
+        {
+          "name": "aud_dispatcher",
+          "type": "bool",
+          "description": "Stored audience flag for role dispatcher."
+        },
+        {
+          "name": "aud_safety",
+          "type": "bool",
+          "description": "Stored audience flag for role safety."
+        },
+        {
+          "name": "aud_sales",
+          "type": "bool",
+          "description": "Stored audience flag for role sales."
+        },
+        {
+          "name": "aud_leadership",
+          "type": "bool",
+          "description": "Stored audience flag for role leadership."
+        }
+      ]
+    }
+  ],
+  "relations": []
+}
