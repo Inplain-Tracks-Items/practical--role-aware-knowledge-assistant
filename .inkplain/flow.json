@@ -71,21 +71,23 @@
     },
     "inkp": {
       "status": "done",
-      "summary": "role-aware-knowledge-assistant.inkp committed on main: 6 tabs STEP-1..STEP-6 in step order, 211 per-step Process Executor documents, every component of each STEP-N.crd drawn once (10/37/42/47/55/59 nodes) and every relation as one edge (8/38/45/50/63/67), step_change on every node. Checked: valid JSON, unique ids, parents before children, no overlaps, edge endpoints exist, operationSteps equal the linked documents. Not yet verified by an actual import in Simulator.",
+      "summary": "Source-derived Chroma STEP-2..STEP-6 ERD tabs appended to the existing large INKP preserving all six CRD flow tabs and 392 linked executor contracts. MCP read-back: 11 tabs, 403 total documents, zero missing links. Main commit e8d494c19119792da3c7f4b60fc5ce9be3899060.",
       "started_at": "2026-10-09T09:15:58.331Z",
       "finished_at": "2026-10-09T09:17:39.393Z",
-      "updated_by": "api-key:eeeeeeeeeeeeeeeeee",
+      "updated_by": "api-key:for-chatgpt-test-2",
       "outputs": {
         "inkp_path": "role-aware-knowledge-assistant.inkp",
         "inkp_url": "https://github.com/Inplain-Tracks-Items/practical--role-aware-knowledge-assistant/blob/main/role-aware-knowledge-assistant.inkp",
-        "tabs": [
-          "STEP-1",
-          "STEP-2",
-          "STEP-3",
-          "STEP-4",
-          "STEP-5",
-          "STEP-6"
-        ]
+        "tabs": 11,
+        "erd_tabs": [
+          "STEP-2-ERD",
+          "STEP-3-ERD",
+          "STEP-4-ERD",
+          "STEP-5-ERD",
+          "STEP-6-ERD"
+        ],
+        "missing_links": 0,
+        "source_commit": "e8d494c19119792da3c7f4b60fc5ce9be3899060"
       }
     },
     "content": {
@@ -107,5 +109,5 @@
       }
     }
   },
-  "updated_at": "2026-10-09T14:28:30.231Z"
+  "updated_at": "2026-10-13T13:56:52.092Z"
 }
